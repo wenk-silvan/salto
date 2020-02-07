@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:salto/dummy_data.dart';
 import 'package:salto/screens/settings_screen.dart';
 import 'package:salto/screens/profile_screen.dart';
+import 'package:salto/screens/upload_screen.dart';
 
 class BaseAppBar extends StatelessWidget implements PreferredSizeWidget{
 
@@ -18,6 +19,15 @@ class BaseAppBar extends StatelessWidget implements PreferredSizeWidget{
           onPressed: () {
             // TODO: open search screen
           },
+        ),
+        IconButton(
+            icon : Icon(Icons.add),
+            onPressed: () {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => UploadScreen())
+              );
+            }
         ),
         IconButton(
           icon : Icon(Icons.settings),

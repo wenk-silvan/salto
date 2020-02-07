@@ -1,6 +1,5 @@
 import 'package:meta/meta.dart';
 class User {
-  final String uuid; // count starts at 10000
   final String username;
   final String firstname;
   final String lastname;
@@ -11,7 +10,6 @@ class User {
   final List<String> follows;
 
   User({
-    @required this.uuid,
     @required this.username,
     this.firstname,
     this.lastname,
@@ -26,16 +24,23 @@ class User {
 class Comment {
   final String commentId; // count starts at 100
   final String text;
-  final String uuid;
-  final String contentId;
+  final User owner;
   final DateTime timestamp;
 
   Comment({
     @required this.commentId,
     @required this.text,
-    @required this.uuid,
-    @required this.contentId,
-    @required this.timestamp});
+    @required this.owner,
+    @required this.timestamp,
+  });
+}
+
+class Like {
+  final User user;
+
+  Like({
+    @required this.user
+  });
 }
 
 class ContentItem {
@@ -43,18 +48,25 @@ class ContentItem {
   final String title;
   final String description;
   final String mediaUrl;
-  final int likeCount;
   final DateTime timestamp;
-  final String ownerUuid;
+  final User owner;
   final List<Comment> comments;
+  final int likeCount;
+  final List<Like> likes;
 
   ContentItem({
     @required this.contentId,
     @required this.title,
     this.description,
     @required this.mediaUrl,
-    @required this.likeCount,
     @required this.timestamp,
-    @required this.ownerUuid,
-    @required this.comments});
+    @required this.owner,
+    @required this.comments,
+    @required this.likeCount,
+    @required this.likes,
+  });
+
+  bool isLikedBy(User user){
+    return likes.any((like) => user.username == like.user.username);
+  }
 }
