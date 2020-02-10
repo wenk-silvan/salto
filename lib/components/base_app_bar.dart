@@ -6,7 +6,6 @@ import 'package:salto/screens/profile_screen.dart';
 import 'package:salto/screens/upload_screen.dart';
 
 class BaseAppBar extends StatelessWidget implements PreferredSizeWidget {
-
   BaseAppBar({Key key}) : super(key: key);
 
   @override
@@ -22,8 +21,34 @@ class BaseAppBar extends StatelessWidget implements PreferredSizeWidget {
         ),
         IconButton(
             icon: Icon(Icons.add),
-            onPressed: () =>
-                Navigator.of(context).pushNamed(UploadScreen.route)),
+            onPressed: () {
+              showDialog(
+                  context: context,
+                  builder: (BuildContext ctx) {
+                    return AlertDialog(
+                      title: Text('Add new post'),
+                      content: Text('How would you like to upload a video?'),
+                      actions: <Widget>[
+                        FlatButton(
+                            child: Text('Take Video'),
+                            // TODO: open camera
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                              Navigator.of(context)
+                                  .pushNamed(UploadScreen.route);
+                            }),
+                        FlatButton(
+                            child: Text('From Gallery'),
+                            //TODO: select video from galley
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                              Navigator.of(context)
+                                  .pushNamed(UploadScreen.route);
+                            }),
+                      ],
+                    );
+                  });
+            }),
         IconButton(
             icon: Icon(Icons.settings),
             onPressed: () =>
