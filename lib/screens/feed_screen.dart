@@ -13,9 +13,6 @@ class _FeedScreenState extends State<FeedScreen> {
   Widget build(BuildContext context) {
     var dummyPosts = getDummyPosts();
     return Scaffold(
-      //appBar: AppBar(
-      //  title: const Text('Salto dude'),
-      //),
       appBar: BaseAppBar(),
       body: ListView(
         children: <Widget>[

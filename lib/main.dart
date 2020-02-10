@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:salto/screens/feed_screen.dart';
+import 'package:salto/screens/follower_screen.dart';
+import 'package:salto/screens/post_screen.dart';
+import 'package:salto/screens/settings_screen.dart';
+import 'package:salto/screens/upload_screen.dart';
 
 void main() => runApp(MyApp());
 
@@ -8,16 +12,24 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Salto',
-      theme: ThemeData(
-        primarySwatch: Colors.purple,
-        accentColor: Colors.deepOrange,
-        fontFamily: 'Lato',
-        textTheme: TextTheme(
-          title: TextStyle(color: Colors.white),
+        title: 'Salto',
+        theme: ThemeData(
+          primarySwatch: Colors.purple,
+          accentColor: Colors.deepOrange,
+          fontFamily: 'Lato',
+          textTheme: TextTheme(
+            title: TextStyle(color: Colors.white),
+          ),
         ),
-      ),
-      home: FeedScreen(),
-    );
+        initialRoute: '/',
+        routes: {
+          '/': (ctx) => FeedScreen(),
+          FollowerScreen.route: (ctx) => FollowerScreen(),
+          PostScreen.route: (ctx) => PostScreen(),
+          SettingsScreen.route: (ctx) => SettingsScreen(),
+          UploadScreen.route: (ctx) => UploadScreen(),
+        },
+        onUnknownRoute: (settings) =>
+            MaterialPageRoute(builder: (ctx) => FeedScreen()));
   }
 }
