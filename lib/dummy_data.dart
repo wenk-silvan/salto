@@ -1,6 +1,5 @@
 import 'models/comment.dart';
 import 'models/content-item.dart';
-import 'models/like.dart';
 import 'models/user.dart';
 
 const DUMMY_USERS = const [

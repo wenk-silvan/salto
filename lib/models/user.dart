@@ -23,8 +23,4 @@ class User {
       this.age,
       this.avatarUrl,
       @required this.follows});
-
-  static User findById(String userId) {
-    return DUMMY_USERS.firstWhere((u) => u.id == userId);
-  }
 }

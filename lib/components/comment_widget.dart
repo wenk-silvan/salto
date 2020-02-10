@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:salto/models/comment.dart';
-
-import '../models/user.dart';
+import 'package:salto/providers/users.dart';
 
 class CommentWidget extends StatefulWidget {
   final Comment comment;
@@ -15,7 +15,7 @@ class CommentWidget extends StatefulWidget {
 class _CommentWidgetState extends State<CommentWidget> {
   @override
   Widget build(BuildContext context) {
-    var user = User.findById(widget.comment.userId);
+    var user = Provider.of<Users>(context).findById(widget.comment.userId);
     var currentTextData = StringBuffer();
     var textSpans = <TextSpan>[
       TextSpan(

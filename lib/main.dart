@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:salto/providers/content-items.dart';
+import 'package:salto/providers/users.dart';
 import 'package:salto/screens/feed_screen.dart';
 import 'package:salto/screens/follower_screen.dart';
 import 'package:salto/screens/post_screen.dart';
@@ -13,26 +16,32 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-        title: 'Salto',
-        theme: ThemeData(
-          primarySwatch: Colors.purple,
-          accentColor: Colors.deepOrange,
-          fontFamily: 'Lato',
-          textTheme: TextTheme(
-            title: TextStyle(color: Colors.white),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider.value(value: ContentItems()),
+        ChangeNotifierProvider.value(value: Users()),
+      ],
+      child: MaterialApp(
+          title: 'Salto',
+          theme: ThemeData(
+            primarySwatch: Colors.purple,
+            accentColor: Colors.deepOrange,
+            fontFamily: 'Lato',
+            textTheme: TextTheme(
+              title: TextStyle(color: Colors.white),
+            ),
           ),
-        ),
-        initialRoute: '/',
-        routes: {
-          '/': (ctx) => TabsScreen(),
-          FollowerScreen.route: (ctx) => FollowerScreen(),
-          PostScreen.route: (ctx) => PostScreen(),
-          SettingsScreen.route: (ctx) => SettingsScreen(),
-          UploadScreen.route: (ctx) => UploadScreen(),
-          ProfileScreen.route: (ctx) => ProfileScreen(),
-        },
-        onUnknownRoute: (settings) =>
-            MaterialPageRoute(builder: (ctx) => FeedScreen()));
+          initialRoute: '/',
+          routes: {
+            '/': (ctx) => TabsScreen(),
+            FollowerScreen.route: (ctx) => FollowerScreen(),
+            PostScreen.route: (ctx) => PostScreen(),
+            SettingsScreen.route: (ctx) => SettingsScreen(),
+            UploadScreen.route: (ctx) => UploadScreen(),
+            ProfileScreen.route: (ctx) => ProfileScreen(),
+          },
+          onUnknownRoute: (settings) =>
+              MaterialPageRoute(builder: (ctx) => FeedScreen())),
+    );
   }
 }
