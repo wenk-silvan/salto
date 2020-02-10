@@ -1,9 +1,12 @@
-import 'package:salto/models.dart';
+import 'models/comment.dart';
+import 'models/content-item.dart';
+import 'models/like.dart';
+import 'models/user.dart';
 
 var fleekBoi = User(
-  firstname: 'Fleek',
-  lastname: 'Boi',
-  username: 'fleekboi',
+  firstName: 'Fleek',
+  lastName: 'Boi',
+  userName: 'fleekboi',
   userDescription: 'Hey there, my name is Fleek',
   locality: 'Brussels',
   age: 21,
@@ -12,9 +15,9 @@ var fleekBoi = User(
 );
 
 var dinkyJ = User(
-  firstname: 'Jos',
-  lastname: 'Dinky',
-  username: 'dinkyj',
+  firstName: 'Jos',
+  lastName: 'Dinky',
+  userName: 'dinkyj',
   userDescription: 'Hey there, my name is Jos',
   locality: 'Berlin',
   age: 22,
@@ -53,9 +56,9 @@ var fleekBackie = ContentItem(
 List<User> getDummyUsers(){
   return new List<User>.generate(20, (i) {
     return User(
-      firstname: 'Max' + i.toString(),
-      lastname: 'Müller' + i.toString(),
-      username: 'max'+i.toString(),
+      firstName: 'Max' + i.toString(),
+      lastName: 'Müller' + i.toString(),
+      userName: 'max'+i.toString(),
       userDescription: 'Yoo, waassup I am number' + i.toString(),
       locality: 'London',
       age: 21,

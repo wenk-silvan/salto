@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:salto/screens/feed_screen.dart';
 import 'package:salto/screens/follower_screen.dart';
 import 'package:salto/screens/post_screen.dart';
+import 'package:salto/screens/profile_screen.dart';
 import 'package:salto/screens/settings_screen.dart';
 import 'package:salto/screens/upload_screen.dart';
 
@@ -28,6 +29,7 @@ class MyApp extends StatelessWidget {
           PostScreen.route: (ctx) => PostScreen(),
           SettingsScreen.route: (ctx) => SettingsScreen(),
           UploadScreen.route: (ctx) => UploadScreen(),
+          ProfileScreen.route: (ctx) => ProfileScreen(),
         },
         onUnknownRoute: (settings) =>
             MaterialPageRoute(builder: (ctx) => FeedScreen()));

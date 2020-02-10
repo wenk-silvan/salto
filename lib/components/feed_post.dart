@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:salto/models.dart';
+import 'package:salto/models/comment.dart';
+import 'package:salto/models/content-item.dart';
 import 'package:salto/screens/profile_screen.dart';
 import 'package:salto/components/comment_widget.dart';
 
