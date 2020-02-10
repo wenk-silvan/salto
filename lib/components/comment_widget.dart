@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:salto/models/comment.dart';
 
+import '../models/user.dart';
+
 class CommentWidget extends StatefulWidget {
   final Comment comment;
 
@@ -13,10 +15,11 @@ class CommentWidget extends StatefulWidget {
 class _CommentWidgetState extends State<CommentWidget> {
   @override
   Widget build(BuildContext context) {
+    var user = User.findById(widget.comment.userId);
     var currentTextData = StringBuffer();
     var textSpans = <TextSpan>[
       TextSpan(
-          text: '${widget.comment.owner.userName}',
+          text: '${user.userName}',
           style: TextStyle(fontWeight: FontWeight.bold)),
     ];
     currentTextData.write(' ');

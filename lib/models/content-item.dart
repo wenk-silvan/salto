@@ -1,33 +1,31 @@
 import 'package:flutter/material.dart';
 
 import 'comment.dart';
-import 'like.dart';
-import 'user.dart';
 
 class ContentItem {
-  final String contentId; // count starts at 50
+  final String id; // count starts at 50
   final String title;
   final String description;
   final String mediaUrl;
   final DateTime timestamp;
-  final User owner;
+  final String userId;
   final List<Comment> comments;
   final int likeCount;
-  final List<Like> likes;
+  final List<String> likes;
 
-  ContentItem({
-    @required this.contentId,
+  const ContentItem({
+    @required this.id,
     @required this.title,
     this.description,
     @required this.mediaUrl,
-    @required this.timestamp,
-    @required this.owner,
+    this.timestamp,
+    @required this.userId,
     @required this.comments,
     @required this.likeCount,
     @required this.likes,
   });
 
-  bool isLikedBy(User user) {
+  /*bool isLikedBy(User user) {
     return likes.any((like) => user.userName == like.user.userName);
-  }
+  }*/
 }

@@ -2,15 +2,15 @@ import 'package:flutter/material.dart';
 import 'user.dart';
 
 class Comment {
-  final String commentId; // count starts at 100
+  final String id; // count starts at 100
   final String text;
-  final User owner;
+  final String userId;
   final DateTime timestamp;
 
-  Comment({
-    @required this.commentId,
+  const Comment({
+    @required this.id,
     @required this.text,
-    @required this.owner,
+    @required this.userId,
     @required this.timestamp,
   });
 }

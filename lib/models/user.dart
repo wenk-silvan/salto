@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 
+import '../dummy_data.dart';
+
 class User {
+  final String id;
   final String userName;
   final String firstName;
   final String lastName;
@@ -10,8 +13,9 @@ class User {
   final String avatarUrl;
   final List<String> follows;
 
-  User(
-      {@required this.userName,
+  const User(
+      {@required this.id,
+      @required this.userName,
       this.firstName,
       this.lastName,
       this.userDescription,
@@ -19,4 +23,8 @@ class User {
       this.age,
       this.avatarUrl,
       @required this.follows});
+
+  static User findById(String userId) {
+    return DUMMY_USERS.firstWhere((u) => u.id == userId);
+  }
 }
