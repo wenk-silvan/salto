@@ -4,6 +4,7 @@ import 'package:salto/screens/follower_screen.dart';
 import 'package:salto/screens/post_screen.dart';
 import 'package:salto/screens/profile_screen.dart';
 import 'package:salto/screens/settings_screen.dart';
+import 'package:salto/screens/tabs_screen.dart';
 import 'package:salto/screens/upload_screen.dart';
 
 void main() => runApp(MyApp());
@@ -24,7 +25,7 @@ class MyApp extends StatelessWidget {
         ),
         initialRoute: '/',
         routes: {
-          '/': (ctx) => FeedScreen(),
+          '/': (ctx) => TabsScreen(),
           FollowerScreen.route: (ctx) => FollowerScreen(),
           PostScreen.route: (ctx) => PostScreen(),
           SettingsScreen.route: (ctx) => SettingsScreen(),

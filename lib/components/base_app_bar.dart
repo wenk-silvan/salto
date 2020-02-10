@@ -6,12 +6,13 @@ import 'package:salto/screens/profile_screen.dart';
 import 'package:salto/screens/upload_screen.dart';
 
 class BaseAppBar extends StatelessWidget implements PreferredSizeWidget {
+
   BaseAppBar({Key key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      title: const Text("Salto"),
+      title: Text('Salto'),
       actions: <Widget>[
         IconButton(
           icon: Icon(Icons.search),

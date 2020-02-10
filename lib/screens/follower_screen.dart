@@ -5,11 +5,6 @@ class FollowerScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Followers'),
-      ),
-      body: Text('Content'),
-    );
+    return Text('Content');
   }
 }
