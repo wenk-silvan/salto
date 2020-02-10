@@ -15,12 +15,17 @@ class _FeedScreenState extends State<FeedScreen> {
   Widget build(BuildContext context) {
     List<ContentItem> content = Provider.of<ContentItems>(context).items;
 
-    return ListView(
-      children: <Widget>[
-        FeedPost(content[0]),
-        FeedPost(content[0]),
-        FeedPost(content[0]),
-      ],
+    return RefreshIndicator(
+      onRefresh: () {
+        //TODO: Fetch content.
+      },
+      child: ListView(
+        children: <Widget>[
+          FeedPost(content[0]),
+          FeedPost(content[0]),
+          FeedPost(content[0]),
+        ],
+      ),
     );
   }
 }
