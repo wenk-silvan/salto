@@ -98,6 +98,7 @@ class ProfileScreen extends StatelessWidget {
               softWrap: true,
             ),
           ),
+          SizedBox(height: 10),
           Consumer<ContentItems>(
               builder: (ctx, contentItemsData, _) {
                 final userContentMediaUrls = contentItemsData.getMediaByUserId(userId);
@@ -106,15 +107,15 @@ class ProfileScreen extends StatelessWidget {
                     width: double.infinity,
                     height: 200,
                     child: GridView.builder(
-                      padding: const EdgeInsets.all(10.0),
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
                       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: 3,
                         childAspectRatio: 1,
                         crossAxisSpacing: 5,
                         mainAxisSpacing: 5,
                       ),
-                      itemCount: 1,
-                      itemBuilder: (ctx, i) => Image.network(userContentMediaUrls[i]),
+                      itemCount: userContentMediaUrls.length,
+                      itemBuilder: (ctx, i) => Image.network(userContentMediaUrls[i], fit: BoxFit.cover,),
                     ),
                   ),
                 );
