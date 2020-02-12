@@ -10,7 +10,6 @@ class ContentItem {
   final DateTime timestamp;
   final String userId;
   final List<Comment> comments;
-  final int likeCount;
   final List<String> likes;
 
   const ContentItem({
@@ -21,7 +20,6 @@ class ContentItem {
     this.timestamp,
     @required this.userId,
     @required this.comments,
-    @required this.likeCount,
     @required this.likes,
   });
 

@@ -52,7 +52,6 @@ ContentItem(
         /*timestamp: DateTime(2019, 1, 1, 12, 2, 30),*/
       ),
     ],
-    likeCount: 25,
     likes: [
       'ed4f546q',
       '5a4f546e',
