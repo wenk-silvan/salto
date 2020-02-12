@@ -17,14 +17,12 @@ class _FeedScreenState extends State<FeedScreen> {
 
     return RefreshIndicator(
       onRefresh: () {
-        //TODO: Fetch content.
+        //TODO: Fetch content
+        return null;
       },
-      child: ListView(
-        children: <Widget>[
-          FeedPost(content[0]),
-          FeedPost(content[0]),
-          FeedPost(content[0]),
-        ],
+      child: ListView.builder(
+        itemBuilder: (_, i) => FeedPost(content[i]),
+        itemCount: content.length,
       ),
     );
   }
