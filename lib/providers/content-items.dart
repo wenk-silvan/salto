@@ -33,6 +33,33 @@ class ContentItems with ChangeNotifier {
           '5a4f546e',
         ]),
     ContentItem(
+        id: '73',
+        title: 'Its tutorial time.',
+        description: 'Backflip in den Sand',
+        mediaUrl:
+        'https://www.wikihow.com/images/thumb/1/18/Do-Trampoline-Tricks-Step-2.jpg/aid204008-v4-728px-Do-Trampoline-Tricks-Step-2.jpg',
+        /*timestamp: DateTime(2019, 1, 1, 12, 0, 0),*/
+        userId: '5a4f546e',
+        comments: [
+          Comment(
+            id: "156",
+            text:
+            'Sick! Yes, this comment is supposed to be very long so it wraps around multiple lines to test whether the layout stays anchored...',
+            userId: '5a4f546e',
+            /*timestamp: DateTime(2019, 1, 1, 12, 1, 30),*/
+          ),
+          Comment(
+            id: "157",
+            text: 'Nice!',
+            userId: '5a4f546e',
+            /*timestamp: DateTime(2019, 1, 1, 12, 2, 30),*/
+          ),
+        ],
+        likes: [
+          'ed4f546q',
+          '5a4f546e',
+        ]),
+    ContentItem(
         id: '71',
         title: 'Another trick',
         description: 'Backflip in den Sand',
@@ -77,33 +104,6 @@ class ContentItems with ChangeNotifier {
           ),
           Comment(
             id: "155",
-            text: 'Nice!',
-            userId: '5a4f546e',
-            /*timestamp: DateTime(2019, 1, 1, 12, 2, 30),*/
-          ),
-        ],
-        likes: [
-          'ed4f546q',
-          '5a4f546e',
-        ]),
-    ContentItem(
-        id: '73',
-        title: 'Its tutorial time.',
-        description: 'Backflip in den Sand',
-        mediaUrl:
-        'https://www.wikihow.com/images/thumb/1/18/Do-Trampoline-Tricks-Step-2.jpg/aid204008-v4-728px-Do-Trampoline-Tricks-Step-2.jpg',
-        /*timestamp: DateTime(2019, 1, 1, 12, 0, 0),*/
-        userId: '5a4f546e',
-        comments: [
-          Comment(
-            id: "156",
-            text:
-            'Sick! Yes, this comment is supposed to be very long so it wraps around multiple lines to test whether the layout stays anchored...',
-            userId: '5a4f546e',
-            /*timestamp: DateTime(2019, 1, 1, 12, 1, 30),*/
-          ),
-          Comment(
-            id: "157",
             text: 'Nice!',
             userId: '5a4f546e',
             /*timestamp: DateTime(2019, 1, 1, 12, 2, 30),*/

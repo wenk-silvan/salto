@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:salto/models/comment.dart';
 import 'package:salto/models/content-item.dart';
+import 'package:salto/providers/users.dart';
 import 'package:salto/screens/profile_screen.dart';
 import 'package:salto/components/comment_widget.dart';
 
@@ -16,6 +18,7 @@ class FeedPost extends StatefulWidget {
 class _FeedPostState extends State<FeedPost> {
   @override
   Widget build(BuildContext context) {
+    final user = Provider.of<Users>(context).findById(widget.post.userId);
     return Center(
       child: Card(
         child: Column(
@@ -25,30 +28,30 @@ class _FeedPostState extends State<FeedPost> {
               children: <Widget>[
                 //Avatar
                 GestureDetector(
-                    child: new Padding(
-                        padding: const EdgeInsets.only(
-                            left: 5.0, right: 10.0, top: 5.0, bottom: 10.0),
-                        child: CircleAvatar(
-                            child: ClipOval(
-                          // Avatar image recieved by db
-                          //TODO: query User.avatarUrl WHERE User.uuid = ContentItem.uuid
-                          child: Image.network(
-                              'https://upload.wikimedia.org/wikipedia/commons/c/c5/A.J.M._Arkor.jpg'),
-                        ))),
-                    onTap: () => Navigator.of(context).pushNamed(
-                          ProfileScreen.route,
-                          arguments: widget.post.userId,
-                        )),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Text(widget.post.title,
-                        style: TextStyle(fontWeight: FontWeight.bold)),
-                  ],
+                  child: new Padding(
+                    padding: const EdgeInsets.only(
+                        left: 5.0, right: 10.0, top: 5.0, bottom: 10.0),
+                    child: CircleAvatar(
+                      child: ClipOval(
+                        child: Image.network(user.avatarUrl),
+                      ),
+                    ),
+                  ),
+                  onTap: () => Navigator.of(context).pushNamed(
+                    ProfileScreen.route,
+                    arguments: widget.post.userId,
+                  ),
+                ),
+                Text(
+                  widget.post.title,
+                  style: TextStyle(fontWeight: FontWeight.bold),
                 ),
               ],
             ),
-            Image.network(widget.post.mediaUrl),
+            Container(
+              width: double.infinity,
+              child: Image.network(widget.post.mediaUrl, fit: BoxFit.cover),
+            ),
             Row(
               mainAxisAlignment: MainAxisAlignment.start,
               children: <Widget>[
