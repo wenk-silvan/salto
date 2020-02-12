@@ -35,8 +35,10 @@ class _FeedPostState extends State<FeedPost> {
                           child: Image.network(
                               'https://upload.wikimedia.org/wikipedia/commons/c/c5/A.J.M._Arkor.jpg'),
                         ))),
-                    onTap: () =>
-                        Navigator.of(context).pushNamed(ProfileScreen.route)),
+                    onTap: () => Navigator.of(context).pushNamed(
+                          ProfileScreen.route,
+                          arguments: widget.post.userId,
+                        )),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[

@@ -63,7 +63,10 @@ class BaseAppBar extends StatelessWidget implements PreferredSizeWidget {
                     child: ClipOval(
                   child: Image.network(this.user.avatarUrl),
                 ))),
-            onTap: () => Navigator.of(context).pushNamed(ProfileScreen.route))
+            onTap: () => Navigator.of(context).pushNamed(
+                  ProfileScreen.route,
+                  arguments: this.user.id,
+                ))
       ],
     );
   }

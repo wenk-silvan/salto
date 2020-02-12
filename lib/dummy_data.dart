@@ -8,7 +8,7 @@ const DUMMY_USERS = const [
     firstName: 'Fleek',
     lastName: 'Boi',
     userName: 'fleekboi',
-    userDescription: 'Hey there, my name is Fleek',
+    description: 'Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.',
     locality: 'Brussels',
     age: 21,
     avatarUrl:
@@ -20,7 +20,7 @@ const DUMMY_USERS = const [
     firstName: 'Jos',
     lastName: 'Dinky',
     userName: 'dinkyj',
-    userDescription: 'Hey there, my name is Jos',
+    description: 'Hey there, my name is Jos',
     locality: 'Berlin',
     age: 22,
     avatarUrl: 'https://i.pravatar.cc/150?img=57',
@@ -64,7 +64,7 @@ List<User> getDummyUsers() {
       firstName: 'Max' + i.toString(),
       lastName: 'Müller' + i.toString(),
       userName: 'max' + i.toString(),
-      userDescription: 'Yoo, waassup I am number' + i.toString(),
+      description: 'Yoo, waassup I am number' + i.toString(),
       locality: 'London',
       age: 21,
       avatarUrl:

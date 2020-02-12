@@ -7,20 +7,22 @@ class User {
   final String userName;
   final String firstName;
   final String lastName;
-  final String userDescription;
+  final String description;
   final String locality;
   final int age;
   final String avatarUrl;
   final List<String> follows;
+  final List<String> followers;
 
   const User(
       {@required this.id,
       @required this.userName,
-      this.firstName,
-      this.lastName,
-      this.userDescription,
-      this.locality,
-      this.age,
+      @required this.firstName,
+      @required this.lastName,
+      @required this.locality,
       this.avatarUrl,
-      @required this.follows});
+      this.age,
+      this.description,
+      @required this.follows,
+      @required this.followers});
 }
