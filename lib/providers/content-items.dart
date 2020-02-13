@@ -10,14 +10,14 @@ class ContentItems with ChangeNotifier {
         title: 'Fleek\'s Backflip',
         description: 'Backflip in den Sand',
         mediaUrl:
-        'https://upload.wikimedia.org/wikipedia/commons/b/b3/Backflip.jpg',
+            'https://upload.wikimedia.org/wikipedia/commons/b/b3/Backflip.jpg',
         /*timestamp: DateTime(2019, 1, 1, 12, 0, 0),*/
         userId: 'ed4f546q',
         comments: [
           Comment(
             id: "150",
             text:
-            'Sick! Yes, this comment is supposed to be very long so it wraps around multiple lines to test whether the layout stays anchored...',
+                'Sick! Yes, this comment is supposed to be very long so it wraps around multiple lines to test whether the layout stays anchored...',
             userId: '5a4f546e',
             /*timestamp: DateTime(2019, 1, 1, 12, 1, 30),*/
           ),
@@ -37,14 +37,14 @@ class ContentItems with ChangeNotifier {
         title: 'Its tutorial time.',
         description: 'Backflip in den Sand',
         mediaUrl:
-        'https://www.wikihow.com/images/thumb/1/18/Do-Trampoline-Tricks-Step-2.jpg/aid204008-v4-728px-Do-Trampoline-Tricks-Step-2.jpg',
+            'https://www.wikihow.com/images/thumb/1/18/Do-Trampoline-Tricks-Step-2.jpg/aid204008-v4-728px-Do-Trampoline-Tricks-Step-2.jpg',
         /*timestamp: DateTime(2019, 1, 1, 12, 0, 0),*/
         userId: '5a4f546e',
         comments: [
           Comment(
             id: "156",
             text:
-            'Sick! Yes, this comment is supposed to be very long so it wraps around multiple lines to test whether the layout stays anchored...',
+                'Sick! Yes, this comment is supposed to be very long so it wraps around multiple lines to test whether the layout stays anchored...',
             userId: '5a4f546e',
             /*timestamp: DateTime(2019, 1, 1, 12, 1, 30),*/
           ),
@@ -63,15 +63,14 @@ class ContentItems with ChangeNotifier {
         id: '71',
         title: 'Another trick',
         description: 'Backflip in den Sand',
-        mediaUrl:
-        'https://i.ytimg.com/vi/qu1deqZJ8_A/maxresdefault.jpg',
+        mediaUrl: 'https://i.ytimg.com/vi/qu1deqZJ8_A/maxresdefault.jpg',
         /*timestamp: DateTime(2019, 1, 1, 12, 0, 0),*/
         userId: 'ed4f546q',
         comments: [
           Comment(
             id: "152",
             text:
-            'Sick! Yes, this comment is supposed to be very long so it wraps around multiple lines to test whether the layout stays anchored...',
+                'Sick! Yes, this comment is supposed to be very long so it wraps around multiple lines to test whether the layout stays anchored...',
             userId: '5a4f546e',
             /*timestamp: DateTime(2019, 1, 1, 12, 1, 30),*/
           ),
@@ -91,14 +90,14 @@ class ContentItems with ChangeNotifier {
         title: 'Yet another tramp salto',
         description: 'Backflip in den Sand',
         mediaUrl:
-        'http://realbuzz4.s3.amazonaws.com/photo_field_photos/600x450/d7329c10a660bd47cb9ac8fe75a3f05c677b.jpg',
+            'http://realbuzz4.s3.amazonaws.com/photo_field_photos/600x450/d7329c10a660bd47cb9ac8fe75a3f05c677b.jpg',
         /*timestamp: DateTime(2019, 1, 1, 12, 0, 0),*/
         userId: 'ed4f546q',
         comments: [
           Comment(
             id: "154",
             text:
-            'Sick! Yes, this comment is supposed to be very long so it wraps around multiple lines to test whether the layout stays anchored...',
+                'Sick! Yes, this comment is supposed to be very long so it wraps around multiple lines to test whether the layout stays anchored...',
             userId: '5a4f546e',
             /*timestamp: DateTime(2019, 1, 1, 12, 1, 30),*/
           ),
@@ -118,14 +117,14 @@ class ContentItems with ChangeNotifier {
         title: 'Another tutorial baby',
         description: 'Backflip in den Sand',
         mediaUrl:
-        'https://www.wikihow.com/images/thumb/6/65/Do-Trampoline-Tricks-Step-4.jpg/aid204008-v4-728px-Do-Trampoline-Tricks-Step-4.jpg',
+            'https://www.wikihow.com/images/thumb/6/65/Do-Trampoline-Tricks-Step-4.jpg/aid204008-v4-728px-Do-Trampoline-Tricks-Step-4.jpg',
         /*timestamp: DateTime(2019, 1, 1, 12, 0, 0),*/
         userId: '5a4f546e',
         comments: [
           Comment(
             id: "158",
             text:
-            'Sick! Yes, this comment is supposed to be very long so it wraps around multiple lines to test whether the layout stays anchored...',
+                'Sick! Yes, this comment is supposed to be very long so it wraps around multiple lines to test whether the layout stays anchored...',
             userId: '5a4f546e',
             /*timestamp: DateTime(2019, 1, 1, 12, 1, 30),*/
           ),
@@ -144,15 +143,14 @@ class ContentItems with ChangeNotifier {
         id: '75',
         title: 'The Whackflip',
         description: 'Backflip in den Sand',
-        mediaUrl:
-        'http://i.ytimg.com/vi/6qMYH9EOJUo/hqdefault.jpg',
+        mediaUrl: 'http://i.ytimg.com/vi/6qMYH9EOJUo/hqdefault.jpg',
         /*timestamp: DateTime(2019, 1, 1, 12, 0, 0),*/
         userId: 'ed4f546q',
         comments: [
           Comment(
             id: "160",
             text:
-            'Sick! Yes, this comment is supposed to be very long so it wraps around multiple lines to test whether the layout stays anchored...',
+                'Sick! Yes, this comment is supposed to be very long so it wraps around multiple lines to test whether the layout stays anchored...',
             userId: '5a4f546e',
             /*timestamp: DateTime(2019, 1, 1, 12, 1, 30),*/
           ),
@@ -179,5 +177,12 @@ class ContentItems with ChangeNotifier {
         .where((i) => i.userId == userId)
         .map((i) => i.mediaUrl)
         .toList();
+  }
+
+  List<ContentItem> getContentOfUsers(List<String> userIds) {
+    List<ContentItem> items = [];
+    userIds.forEach(
+        (id) => items.addAll(this._items.where((i) => i.userId == id)));
+    return items;
   }
 }

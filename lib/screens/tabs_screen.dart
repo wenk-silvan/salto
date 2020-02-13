@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import 'package:salto/components/base_app_bar.dart';
 import 'package:salto/providers/users.dart';
 import 'package:salto/screens/feed_screen.dart';
-import 'package:salto/screens/follower_screen.dart';
 
 import '../models/user.dart';
 import 'upload_screen.dart';
@@ -37,8 +36,8 @@ class _TabsScreenState extends State<TabsScreen> {
     }
 
       _pages = [
-        {'page': FeedScreen(), 'title': 'All'},
-        {'page': FollowerScreen(), 'title': 'Following'},
+        {'page': FeedScreen(isFavorites: false, currentUser: this._currentUser)},
+        {'page': FeedScreen(isFavorites: true, currentUser: this._currentUser)},
       ];
       super.initState();
     }

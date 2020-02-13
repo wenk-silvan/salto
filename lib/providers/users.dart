@@ -41,7 +41,7 @@ class Users with ChangeNotifier {
     return this._users.firstWhere((u) => u.id == userId);
   }
 
-  User login(String userName) {
+  void login(String userName) {
     this.currentUser = this._users.firstWhere((u) => u.userName == userName, orElse: () => null);
   }
 }

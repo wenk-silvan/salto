@@ -8,6 +8,23 @@ class ProfileScreen extends StatelessWidget {
   static const _placeholderAvatarUrl =
       'https://cdn.pixabay.com/photo/2016/08/08/09/17/avatar-1577909_960_720.png';
 
+  Widget _buildChip(BuildContext ctx, String text) => Chip(
+        label: Row(
+          children: <Widget>[
+            Icon(
+              Icons.home,
+              color: Theme.of(ctx).textTheme.title.color,
+            ),
+            SizedBox(
+              width: 5,
+            ),
+            Text(text,
+                style: TextStyle(color: Theme.of(ctx).textTheme.title.color)),
+          ],
+        ),
+        backgroundColor: Theme.of(ctx).primaryColor,
+      );
+
   @override
   Widget build(BuildContext context) {
     final userId = ModalRoute.of(context).settings.arguments as String;
@@ -49,43 +66,8 @@ class ProfileScreen extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: <Widget>[
-                Chip(
-                  label: Row(
-                    children: <Widget>[
-                      Icon(
-                        Icons.favorite,
-                        color: Theme.of(context).textTheme.title.color,
-                      ),
-                      SizedBox(
-                        width: 5,
-                      ),
-                      Text(
-                          '${user.followers.length} ${user.followers.length == 1 ? 'Follower' : 'Followers'}',
-                          style: TextStyle(
-                              color:
-                              Theme.of(context).textTheme.title.color)),
-                    ],
-                  ),
-                  backgroundColor: Theme.of(context).primaryColor,
-                ),
-                Chip(
-                  label: Row(
-                    children: <Widget>[
-                      Icon(
-                        Icons.home,
-                        color: Theme.of(context).textTheme.title.color,
-                      ),
-                      SizedBox(
-                        width: 5,
-                      ),
-                      Text('${user.locality}',
-                          style: TextStyle(
-                              color:
-                              Theme.of(context).textTheme.title.color)),
-                    ],
-                  ),
-                  backgroundColor: Theme.of(context).primaryColor,
-                ),
+                this._buildChip(context, '${user.followers.length} ${user.followers.length == 1 ? 'Follower' : 'Followers'}'),
+                this._buildChip(context, user.locality),
               ],
             ),
           ),
@@ -99,28 +81,30 @@ class ProfileScreen extends StatelessWidget {
             ),
           ),
           SizedBox(height: 10),
-          Consumer<ContentItems>(
-              builder: (ctx, contentItemsData, _) {
-                final userContentMediaUrls = contentItemsData.getMediaByUserId(userId);
-                return SingleChildScrollView(
-                  child: Container(
-                    width: double.infinity,
-                    height: 200,
-                    child: GridView.builder(
-                      padding: const EdgeInsets.symmetric(horizontal: 10),
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 3,
-                        childAspectRatio: 1,
-                        crossAxisSpacing: 5,
-                        mainAxisSpacing: 5,
-                      ),
-                      itemCount: userContentMediaUrls.length,
-                      itemBuilder: (ctx, i) => Image.network(userContentMediaUrls[i], fit: BoxFit.cover,),
-                    ),
+          Consumer<ContentItems>(builder: (ctx, contentItemsData, _) {
+            final userContentMediaUrls =
+                contentItemsData.getMediaByUserId(userId);
+            return SingleChildScrollView(
+              child: Container(
+                width: double.infinity,
+                height: 200,
+                child: GridView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 3,
+                    childAspectRatio: 1,
+                    crossAxisSpacing: 5,
+                    mainAxisSpacing: 5,
                   ),
-                );
-              }
-          )
+                  itemCount: userContentMediaUrls.length,
+                  itemBuilder: (ctx, i) => Image.network(
+                    userContentMediaUrls[i],
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ),
+            );
+          })
         ],
       ),
     );
