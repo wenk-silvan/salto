@@ -42,6 +42,18 @@ class Users with ChangeNotifier {
   }
 
   void login(String userName) {
-    this.currentUser = this._users.firstWhere((u) => u.userName == userName, orElse: () => null);
+    this.currentUser = this._users.firstWhere((u) => u.userName == userName, orElse: () => User(
+      followers: [],
+      id: '',
+      firstName: '',
+      follows: [],
+      lastName: '',
+      locality: '',
+      userName: '',
+      description: '',
+      age: 0,
+      avatarUrl: '',
+    ));
+    print('Logged in user: ${this.currentUser.userName}');
   }
 }

@@ -27,8 +27,11 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    print('Build profile screen'); //Debugging purposes
     final userId = ModalRoute.of(context).settings.arguments as String;
-    final user = Provider.of<Users>(context, listen: false).findById(userId);
+    final userData = Provider.of<Users>(context);
+    final user = userData.findById(userId);
+    //final bool isMyProfile = (userData.currentUser.id == userId) ? true : false;
     return Scaffold(
       appBar: AppBar(
         title: Text(user.userName),
@@ -42,14 +45,15 @@ class ProfileScreen extends StatelessWidget {
       ),
       body: Column(
         children: <Widget>[
-          Container(
-            height: 250,
-            width: double.infinity,
-            child: Image.network(
-                user.avatarUrl != null && user.avatarUrl.isNotEmpty
-                    ? user.avatarUrl
-                    : _placeholderAvatarUrl,
-                fit: BoxFit.cover),
+          Expanded(
+            child: Container(
+              width: double.infinity,
+              child: Image.network(
+                  user.avatarUrl != null && user.avatarUrl.isNotEmpty
+                      ? user.avatarUrl
+                      : _placeholderAvatarUrl,
+                  fit: BoxFit.cover),
+            ),
           ),
           SizedBox(height: 10),
           Text(
@@ -61,7 +65,7 @@ class ProfileScreen extends StatelessWidget {
           ),
           Container(
             padding: EdgeInsets.all(10),
-            height: 60,
+            height: MediaQuery.of(context).size.height * 0.08,
             width: double.infinity,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -87,12 +91,12 @@ class ProfileScreen extends StatelessWidget {
             return SingleChildScrollView(
               child: Container(
                 width: double.infinity,
-                height: 200,
+                height: MediaQuery.of(context).size.height * 0.36,
                 child: GridView.builder(
                   padding: const EdgeInsets.symmetric(horizontal: 10),
                   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 3,
-                    childAspectRatio: 1,
+                    childAspectRatio: 1 / 1,
                     crossAxisSpacing: 5,
                     mainAxisSpacing: 5,
                   ),

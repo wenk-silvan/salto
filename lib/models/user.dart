@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../dummy_data.dart';
-
 class User {
   final String id;
   final String userName;

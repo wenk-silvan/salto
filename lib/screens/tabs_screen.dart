@@ -5,7 +5,6 @@ import 'package:salto/providers/users.dart';
 import 'package:salto/screens/feed_screen.dart';
 
 import '../models/user.dart';
-import 'upload_screen.dart';
 
 class TabsScreen extends StatefulWidget {
   @override
@@ -35,22 +34,21 @@ class _TabsScreenState extends State<TabsScreen> {
       this._currentUser = userData.currentUser;
     }
 
-      _pages = [
-        {'page': FeedScreen(isFavorites: false, currentUser: this._currentUser)},
-        {'page': FeedScreen(isFavorites: true, currentUser: this._currentUser)},
-      ];
-      super.initState();
-    }
+    _pages = [
+      {'page': FeedScreen(isFavorites: false, currentUser: this._currentUser)},
+      {'page': FeedScreen(isFavorites: true, currentUser: this._currentUser)},
+    ];
+    super.initState();
+  }
 
-    void _selectPage(int index) {
-      setState(() {
-        this._selectedPageIndex = index;
-      });
-    }
+  void _selectPage(int index) {
+    setState(() {
+      this._selectedPageIndex = index;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       appBar: BaseAppBar(this._currentUser),
       body: this._pages[this._selectedPageIndex]['page'],
