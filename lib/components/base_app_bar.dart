@@ -37,16 +37,18 @@ class BaseAppBar extends StatelessWidget implements PreferredSizeWidget {
                             // TODO: open camera
                             onPressed: () {
                               Navigator.of(context).pop();
-                              Navigator.of(context)
-                                  .pushNamed(UploadScreen.route);
+                              Navigator.of(context).pushNamed(
+                                  UploadScreen.route,
+                                  arguments: this.user.id);
                             }),
                         FlatButton(
                             child: Text('From Gallery'),
                             //TODO: select video from galley
                             onPressed: () {
                               Navigator.of(context).pop();
-                              Navigator.of(context)
-                                  .pushNamed(UploadScreen.route);
+                              Navigator.of(context).pushNamed(
+                                  UploadScreen.route,
+                                  arguments: this.user.id);
                             }),
                       ],
                     );

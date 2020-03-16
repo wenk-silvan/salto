@@ -2,7 +2,6 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:salto/models/user.dart';
-import 'package:salto/providers/users.dart';
 
 import '../models/comment.dart';
 import '../models/content-item.dart';
@@ -12,7 +11,6 @@ class ContentItems with ChangeNotifier {
   static const url = "https://salto-7fab8.firebaseio.com/";
    List<String> _favoriteUserIds = [];
 
-  List<ContentItem> _favItems = [];
   List<ContentItem> _items = [];
 
   List<ContentItem> get items {
@@ -44,6 +42,16 @@ class ContentItems with ChangeNotifier {
       url + "/content.json",
       body: body
     );
+    this.items.add(ContentItem(
+      id: json.decode(response.body)['name'],
+      likes: item.likes,
+      userId: item.userId,
+      comments: item.comments,
+      title: item.title,
+      mediaUrl: item.mediaUrl,
+      timestamp: item.timestamp,
+      description: item.description,
+    ));
     this.notifyListeners();
   }
 
@@ -61,13 +69,13 @@ class ContentItems with ChangeNotifier {
         userId: contentData['userId'],
         timestamp: DateTime.parse(contentData['dateTime']),
         description: contentData['description'],
-        comments: (contentData['comments'] as List<dynamic>).map((comment) => Comment(
+        comments: contentData['comments'] == null ? [] : (contentData['comments'] as List<dynamic>).map((comment) => Comment(
           timestamp: DateTime.parse(comment['timestamp']),
           userId: comment['userId'],
           id: comment['id'],
           text: comment['text'],
         )).toList(),
-        likes: (contentData['likes'] as List<dynamic>).map((userId) => userId.toString()).toList(),
+        likes: contentData['likes'] == null ? [] : (contentData['likes'] as List<dynamic>).map((userId) => userId.toString()).toList(),
       ));
     });
     this._items = loadedContent.toList();
