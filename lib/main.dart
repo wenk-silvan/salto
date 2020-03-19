@@ -5,6 +5,7 @@ import 'package:salto/providers/users.dart';
 import 'package:salto/screens/feed_screen.dart';
 import 'package:salto/screens/post_screen.dart';
 import 'package:salto/screens/profile_screen.dart';
+import 'package:salto/screens/search_screen.dart';
 import 'package:salto/screens/settings_screen.dart';
 import 'package:salto/screens/tabs_screen.dart';
 import 'package:salto/screens/upload_screen.dart';
@@ -37,6 +38,7 @@ class MyApp extends StatelessWidget {
             SettingsScreen.route: (ctx) => SettingsScreen(),
             UploadScreen.route: (ctx) => UploadScreen(),
             ProfileScreen.route: (ctx) => ProfileScreen(),
+            SearchScreen.route: (ctx) => SearchScreen(),
           },
           onUnknownRoute: (settings) =>
               MaterialPageRoute(builder: (ctx) => FeedScreen())),

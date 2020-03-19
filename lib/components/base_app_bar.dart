@@ -1,5 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:salto/components/circle_avatar_button.dart';
+import 'package:salto/screens/search_screen.dart';
 import 'package:salto/screens/settings_screen.dart';
 import 'package:salto/screens/profile_screen.dart';
 import 'package:salto/screens/upload_screen.dart';
@@ -19,7 +21,7 @@ class BaseAppBar extends StatelessWidget implements PreferredSizeWidget {
         IconButton(
           icon: Icon(Icons.search),
           onPressed: () {
-            // TODO: open search screen
+            Navigator.of(context).pushNamed(SearchScreen.route);
           },
         ),
         IconButton(
@@ -58,20 +60,7 @@ class BaseAppBar extends StatelessWidget implements PreferredSizeWidget {
             icon: Icon(Icons.settings),
             onPressed: () =>
                 Navigator.of(context).pushNamed(SettingsScreen.route)),
-        GestureDetector(
-            child: new Padding(
-                padding: const EdgeInsets.only(right: 10.0),
-                child: CircleAvatar(
-                    child: ClipOval(
-                  child: Image.network(this.user.avatarUrl),
-                ))),
-            onTap: () => Navigator.of(context).pushNamed(
-                  ProfileScreen.route,
-                  arguments: {
-                    'userId': this.user.id,
-                    'currentUserId': this.user.id
-                  },
-                ))
+        CircleAvatarButton(this.user),
       ],
     );
   }

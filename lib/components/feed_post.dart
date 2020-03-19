@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:salto/components/circle_avatar_button.dart';
 import 'package:salto/models/comment.dart';
 import 'package:salto/models/content-item.dart';
 import 'package:salto/models/user.dart';
@@ -49,24 +50,7 @@ class _FeedPostState extends State<FeedPost> {
             Row(
               children: <Widget>[
                 //Avatar
-                GestureDetector(
-                  child: new Padding(
-                    padding: const EdgeInsets.only(
-                        left: 5.0, right: 10.0, top: 5.0, bottom: 10.0),
-                    child: CircleAvatar(
-                      child: ClipOval(
-                        child: Image.network(user.avatarUrl),
-                      ),
-                    ),
-                  ),
-                  onTap: () => Navigator.of(context).pushNamed(
-                    ProfileScreen.route,
-                    arguments: {
-                      'userId': widget.post.userId,
-                      'currentUserId': widget.currentUser.id
-                    },
-                  ),
-                ),
+                CircleAvatarButton(user),
                 Text(
                   widget.post.title,
                   style: TextStyle(fontWeight: FontWeight.bold),
