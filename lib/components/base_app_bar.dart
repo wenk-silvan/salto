@@ -67,7 +67,10 @@ class BaseAppBar extends StatelessWidget implements PreferredSizeWidget {
                 ))),
             onTap: () => Navigator.of(context).pushNamed(
                   ProfileScreen.route,
-                  arguments: this.user.id,
+                  arguments: {
+                    'userId': this.user.id,
+                    'currentUserId': this.user.id
+                  },
                 ))
       ],
     );

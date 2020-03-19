@@ -2,22 +2,44 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:salto/models/comment.dart';
 import 'package:salto/models/content-item.dart';
+import 'package:salto/models/user.dart';
+import 'package:salto/providers/content-items.dart';
 import 'package:salto/providers/users.dart';
 import 'package:salto/screens/profile_screen.dart';
 import 'package:salto/components/comment_widget.dart';
 
 class FeedPost extends StatefulWidget {
   final ContentItem post;
+  final User currentUser;
 
-  FeedPost(this.post);
+  FeedPost(this.post, this.currentUser);
 
   @override
   _FeedPostState createState() => _FeedPostState();
 }
 
 class _FeedPostState extends State<FeedPost> {
+  bool _isFavorite;
+
+  Future<void> _toggleFavorite() async {
+    if (!this._isFavorite) {
+      await Provider.of<ContentItems>(context, listen: false)
+          .addToFavorites(widget.post, widget.currentUser.id);
+    } else {
+      await Provider.of<ContentItems>(context, listen: false)
+          .removeFromFavorites(widget.post, widget.currentUser.id);
+    }
+  }
+
+  void _setIsFavorite() {
+    setState(() {
+      this._isFavorite = widget.post.likes.any((l) => l == widget.currentUser.id);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    this._setIsFavorite();
     final user = Provider.of<Users>(context).findById(widget.post.userId);
     return Center(
       child: Card(
@@ -39,7 +61,10 @@ class _FeedPostState extends State<FeedPost> {
                   ),
                   onTap: () => Navigator.of(context).pushNamed(
                     ProfileScreen.route,
-                    arguments: widget.post.userId,
+                    arguments: {
+                      'userId': widget.post.userId,
+                      'currentUserId': widget.currentUser.id
+                    },
                   ),
                 ),
                 Text(
@@ -57,7 +82,15 @@ class _FeedPostState extends State<FeedPost> {
               children: <Widget>[
                 Padding(
                   padding: const EdgeInsets.all(8.0),
-                  child: Icon(Icons.favorite_border),
+                  child: IconButton(
+                    icon: Icon(
+                        this._isFavorite ? Icons.favorite : Icons.favorite_border),
+                    onPressed: () {
+                      this._toggleFavorite().then((_) {
+                        this._setIsFavorite();
+                      });
+                    },
+                  ),
                 ),
                 Padding(
                   padding: const EdgeInsets.all(8.0),
@@ -65,23 +98,9 @@ class _FeedPostState extends State<FeedPost> {
                 )
               ],
             ),
-            // ContentId Description
             Padding(
               padding: EdgeInsets.only(right: 8.0, left: 8.0, bottom: 6.0),
               child: Text(widget.post.description),
-              /*child: Text.rich(
-                TextSpan(
-                  children: <TextSpan>[
-                      TextSpan(
-                        text: 'User ${widget.post.ownerUuid} ',
-                        style: TextStyle(fontWeight: FontWeight.bold)
-                      ),
-                      TextSpan(
-                        text: '${widget.post.description}',
-                      )
-                    ],
-                ),
-              ),*/
             ),
             Padding(
               padding: EdgeInsets.only(right: 8.0, left: 8.0),

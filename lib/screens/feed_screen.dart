@@ -15,13 +15,12 @@ class FeedScreen extends StatelessWidget {
     return FutureBuilder(
       future: Provider.of<ContentItems>(context, listen: false)
           .getContent(this.currentUser),
-      builder: (ctx, dataSnapshot) {
-        if (dataSnapshot.connectionState == ConnectionState.waiting) {
+      builder: (ctx, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
           return Center(child: CircularProgressIndicator());
         } else {
-          if (dataSnapshot.error != null) {
-            // ...
-            // Do error handling stuff
+          if (snapshot.hasError) {
+            print(snapshot.error);
             return Center(
               child: Text('An error occurred!'),
             );
@@ -29,13 +28,19 @@ class FeedScreen extends StatelessWidget {
             return this.isFavorites
                 ? Consumer<ContentItems>(
                     builder: (ctx, orderData, child) => ListView.builder(
-                      itemBuilder: (_, i) => FeedPost(orderData.favItems[i]),
+                      itemBuilder: (_, i) => FeedPost(
+                        orderData.favItems[i],
+                        this.currentUser,
+                      ),
                       itemCount: orderData.favItems.length,
                     ),
                   )
                 : Consumer<ContentItems>(
                     builder: (ctx, orderData, child) => ListView.builder(
-                      itemBuilder: (_, i) => FeedPost(orderData.items[i]),
+                      itemBuilder: (_, i) => FeedPost(
+                        orderData.items[i],
+                        this.currentUser,
+                      ),
                       itemCount: orderData.items.length,
                     ),
                   );

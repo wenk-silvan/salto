@@ -39,6 +39,7 @@ class _UploadScreenState extends State<UploadScreen> {
       await Provider.of<ContentItems>(context, listen: false)
           .addContent(this._newContentItem);
     } catch (error) {
+      print(error);
       await showDialog(
           context: context,
           builder: (ctx) => AlertDialog(

@@ -9,8 +9,7 @@ import 'package:http/http.dart' as http;
 
 class ContentItems with ChangeNotifier {
   static const url = "https://salto-7fab8.firebaseio.com/";
-   List<String> _favoriteUserIds = [];
-
+  List<String> _favoriteUserIds = [];
   List<ContentItem> _items = [];
 
   List<ContentItem> get items {
@@ -22,37 +21,51 @@ class ContentItems with ChangeNotifier {
   }
 
   Future<void> addContent(ContentItem item) async {
-    final timestamp = DateTime.now();
-    final body = json.encode({
-      'title': item.title,
-      'description': item.description,
-      'mediaUrl': item.mediaUrl,
-      'dateTime': timestamp.toIso8601String(),
-      'userId': item.userId,
-      'comments': item.comments
-          .map((c) => {
-            'id': c.id,
-            'userId': c.userId,
-            'timestamp': c.timestamp.toIso8601String(),
-            'text': c.text,
-          }).toList(),
-      'likes': item.likes
-    });
-    final response = await http.post(
-      url + "/content.json",
-      body: body
-    );
+    final body = ContentItem.toJson(item);
+    final response = await http.post(url + "content.json", body: body);
     this.items.add(ContentItem(
-      id: json.decode(response.body)['name'],
-      likes: item.likes,
-      userId: item.userId,
-      comments: item.comments,
-      title: item.title,
-      mediaUrl: item.mediaUrl,
-      timestamp: item.timestamp,
-      description: item.description,
-    ));
+          id: json.decode(response.body)['name'],
+          likes: item.likes,
+          userId: item.userId,
+          comments: item.comments,
+          title: item.title,
+          mediaUrl: item.mediaUrl,
+          timestamp: item.timestamp,
+          description: item.description,
+        ));
     this.notifyListeners();
+  }
+
+  Future<void> addToFavorites(ContentItem post, String userId) async {
+    post.likes.add(userId);
+    try {
+      final statusCode = await this._updateLikesOfPost(post.likes, post.id);
+      if (statusCode >= 400) {
+        print("Error while adding like.");
+        post.likes.remove(userId);
+      }
+      this.notifyListeners();
+    } catch (error) {
+      print(error);
+      post.likes.remove(userId);
+      this.notifyListeners();
+    }
+  }
+
+  Future<void> removeFromFavorites(ContentItem post, String userId) async {
+    post.likes.remove(userId);
+    try {
+      final statusCode = await this._updateLikesOfPost(post.likes, post.id);
+      if (statusCode >= 400) {
+        print("Error while removing like.");
+        post.likes.add(userId);
+      }
+      this.notifyListeners();
+    } catch (error) {
+      print(error);
+      post.likes.add(userId);
+      this.notifyListeners();
+    }
   }
 
   Future<void> getContent(User user) async {
@@ -61,23 +74,8 @@ class ContentItems with ChangeNotifier {
     final List<ContentItem> loadedContent = [];
     final extracted = json.decode(response.body) as Map<String, dynamic>;
     if (extracted == null) return;
-    extracted.forEach((contentId, contentData) {
-      loadedContent.add(ContentItem(
-        id: contentId,
-        mediaUrl: contentData['mediaUrl'],
-        title: contentData['title'],
-        userId: contentData['userId'],
-        timestamp: DateTime.parse(contentData['dateTime']),
-        description: contentData['description'],
-        comments: contentData['comments'] == null ? [] : (contentData['comments'] as List<dynamic>).map((comment) => Comment(
-          timestamp: DateTime.parse(comment['timestamp']),
-          userId: comment['userId'],
-          id: comment['id'],
-          text: comment['text'],
-        )).toList(),
-        likes: contentData['likes'] == null ? [] : (contentData['likes'] as List<dynamic>).map((userId) => userId.toString()).toList(),
-      ));
-    });
+    extracted.forEach(
+        (id, data) => loadedContent.add(ContentItem.fromJson(id, data)));
     this._items = loadedContent.toList();
     print("Loaded content from database.");
     this.notifyListeners();
@@ -96,5 +94,18 @@ class ContentItems with ChangeNotifier {
     userIds.forEach(
         (id) => items.addAll(this._items.where((i) => i.userId == id)));
     return items;
+  }
+
+  Future<int> _updateLikesOfPost(List<String> likes, String postId) async {
+    final body = json.encode({
+      'likes': likes,
+    });
+    try {
+      final response =
+          await http.patch(url + "/content/$postId.json", body: body);
+      return response.statusCode;
+    } catch (error) {
+      throw error;
+    }
   }
 }
