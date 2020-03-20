@@ -18,7 +18,7 @@ class SearchScreen extends StatefulWidget {
 
 class _SearchScreenState extends State<SearchScreen> {
   List<User> users = new List<User>();
-  List<ContentItem> content = new List<ContentItem>();
+  List<ContentItem> content = [];
   Timer _timer;
   bool _userTabActivated = true;
   final TextEditingController _filter = new TextEditingController();
@@ -52,7 +52,6 @@ class _SearchScreenState extends State<SearchScreen> {
 
   @override
   Widget build(BuildContext context) {
-    Provider.of<Users>(context, listen: false).login("fleekboi"); //TODO: Fix
     return DefaultTabController(
       length: 2,
       child: Scaffold(

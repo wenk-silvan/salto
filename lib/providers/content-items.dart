@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:salto/models/user.dart';
 
-import '../models/comment.dart';
 import '../models/content-item.dart';
 import 'package:http/http.dart' as http;
 

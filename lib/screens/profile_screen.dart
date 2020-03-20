@@ -37,7 +37,7 @@ class ProfileScreen extends StatelessWidget {
       appBar: AppBar(
         title: Text(user.userName),
         actions: <Widget>[
-          if (userData.currentUser.id != userId)
+          if (userData.signedInUser.id != userId)
             IconButton(
               onPressed: () => print('Let\'s follow ${user.userName}'),
               color: Colors.white,
@@ -89,9 +89,9 @@ class ProfileScreen extends StatelessWidget {
             ),
           ),
           SizedBox(height: 10),
-          Consumer<ContentItems>(builder: (ctx, contentItemsData, _) {
-            final userContentMediaUrls =
-                contentItemsData.getContentByUserId(userId);
+          Consumer<ContentItems>(builder: (ctx, content, _) {
+            final contentUrls =
+                content.getContentByUserId(userId);
             return SingleChildScrollView(
               child: Container(
                 width: double.infinity,
@@ -104,9 +104,9 @@ class ProfileScreen extends StatelessWidget {
                     crossAxisSpacing: 5,
                     mainAxisSpacing: 5,
                   ),
-                  itemCount: userContentMediaUrls.length,
+                  itemCount: contentUrls.length,
                   itemBuilder: (ctx, i) => Image.network(
-                    userContentMediaUrls[i],
+                    contentUrls[i],
                     fit: BoxFit.cover,
                   ),
                 ),

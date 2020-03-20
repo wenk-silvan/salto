@@ -40,8 +40,8 @@ class MyApp extends StatelessWidget {
             ProfileScreen.route: (ctx) => ProfileScreen(),
             SearchScreen.route: (ctx) => SearchScreen(),
           },
-          onUnknownRoute: (settings) =>
-              MaterialPageRoute(builder: (ctx) => FeedScreen())),
+          onUnknownRoute: (settings) => MaterialPageRoute(
+              builder: (ctx) => TabsScreen())),
     );
   }
 }

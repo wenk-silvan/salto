@@ -1,6 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:salto/components/circle_avatar_button.dart';
+import 'package:salto/providers/users.dart';
 import 'package:salto/screens/search_screen.dart';
 import 'package:salto/screens/settings_screen.dart';
 import 'package:salto/screens/upload_screen.dart';
@@ -8,12 +10,9 @@ import 'package:salto/screens/upload_screen.dart';
 import '../models/user.dart';
 
 class BaseAppBar extends StatelessWidget implements PreferredSizeWidget {
-  final User user;
-
-  BaseAppBar(this.user, {Key key}) : super(key: key);
-
   @override
   Widget build(BuildContext context) {
+    var signedInUser = Provider.of<Users>(context).signedInUser;
     return AppBar(
       title: Text('Salto'),
       actions: <Widget>[
@@ -38,18 +37,14 @@ class BaseAppBar extends StatelessWidget implements PreferredSizeWidget {
                             // TODO: open camera
                             onPressed: () {
                               Navigator.of(context).pop();
-                              Navigator.of(context).pushNamed(
-                                  UploadScreen.route,
-                                  arguments: this.user.id);
+                              Navigator.of(context).pushNamed(UploadScreen.route);
                             }),
                         FlatButton(
                             child: Text('From Gallery'),
                             //TODO: select video from galley
                             onPressed: () {
                               Navigator.of(context).pop();
-                              Navigator.of(context).pushNamed(
-                                  UploadScreen.route,
-                                  arguments: this.user.id);
+                              Navigator.of(context).pushNamed(UploadScreen.route);
                             }),
                       ],
                     );
@@ -59,7 +54,7 @@ class BaseAppBar extends StatelessWidget implements PreferredSizeWidget {
             icon: Icon(Icons.settings),
             onPressed: () =>
                 Navigator.of(context).pushNamed(SettingsScreen.route)),
-        CircleAvatarButton(this.user),
+        CircleAvatarButton(signedInUser),
       ],
     );
   }

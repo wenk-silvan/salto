@@ -12,39 +12,39 @@ class TabsScreen extends StatefulWidget {
 }
 
 class _TabsScreenState extends State<TabsScreen> {
+  Users _userData;
   List<Map<String, Object>> _pages;
   int _selectedPageIndex = 0;
-  User _currentUser;
 
-  @override
-  void initState() {
-    var userData = Provider.of<Users>(context, listen: false);
-    userData.login('fleekboi');
-    if (userData.currentUser == null) {
-      /*showDialog(
-          context: context,
-          builder: (BuildContext ctx) {
-            return AlertDialog(
-              title: Text('Error occured.'),
-              content: Text('Failed to login.'),
-              actions: <Widget>[FlatButton(child: Text('Ok'))],
-            );
-          });*/
-    } else {
-      this._currentUser = userData.currentUser;
-    }
-
-    _pages = [
-      {'page': FeedScreen(isFavorites: false, currentUser: this._currentUser)},
-      {'page': FeedScreen(isFavorites: true, currentUser: this._currentUser)},
-    ];
-    super.initState();
+  BottomNavigationBar _bottomNavBar() {
+    return BottomNavigationBar(
+      onTap: this._selectPage,
+      backgroundColor: Theme.of(context).primaryColor,
+      unselectedItemColor: Colors.white,
+      selectedItemColor: Theme.of(context).accentColor,
+      currentIndex: this._selectedPageIndex,
+      type: BottomNavigationBarType.fixed,
+      showSelectedLabels: false,
+      showUnselectedLabels: false,
+      items: [
+        BottomNavigationBarItem(
+          backgroundColor: Theme.of(context).primaryColor,
+          icon: Icon(Icons.home),
+          title: Text('All'),
+        ),
+        BottomNavigationBarItem(
+          backgroundColor: Theme.of(context).primaryColor,
+          icon: Icon(Icons.favorite_border),
+          title: Text('Following'),
+        ),
+      ],
+    );
   }
 
-  @override
-  void didChangeDependencies() {
-    Provider.of<Users>(context, listen: false).login('fleekboi');
-    super.didChangeDependencies();
+  Future<void> _initialize(BuildContext ctx) async {
+    this._userData = Provider.of<Users>(ctx, listen: false);
+    await this._userData.getUsers();
+    this._userData.login('fleekboi');
   }
 
   void _selectPage(int index) {
@@ -53,33 +53,44 @@ class _TabsScreenState extends State<TabsScreen> {
     });
   }
 
+  AppBar _simpleAppBar() {
+    return AppBar(
+      title: Text('Salto'),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: BaseAppBar(this._currentUser),
-      body: this._pages[this._selectedPageIndex]['page'],
-      bottomNavigationBar: BottomNavigationBar(
-        onTap: this._selectPage,
-        backgroundColor: Theme.of(context).primaryColor,
-        unselectedItemColor: Colors.white,
-        selectedItemColor: Theme.of(context).accentColor,
-        currentIndex: this._selectedPageIndex,
-        type: BottomNavigationBarType.fixed,
-        showSelectedLabels: false,
-        showUnselectedLabels: false,
-        items: [
-          BottomNavigationBarItem(
-            backgroundColor: Theme.of(context).primaryColor,
-            icon: Icon(Icons.home),
-            title: Text('All'),
-          ),
-          BottomNavigationBarItem(
-            backgroundColor: Theme.of(context).primaryColor,
-            icon: Icon(Icons.favorite_border),
-            title: Text('Following'),
-          ),
-        ],
-      ),
+    return FutureBuilder(
+      future: this._initialize(context),
+      builder: (ctx, snapshot) {
+        this._pages = [
+          {'page': FeedScreen(isFavorites: false)},
+          {'page': FeedScreen(isFavorites: true)},
+        ];
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Scaffold(
+            appBar: this._simpleAppBar(),
+            body: Center(child: CircularProgressIndicator()),
+            bottomNavigationBar: this._bottomNavBar(),
+          );
+        } else {
+          if (snapshot.hasError) {
+            print(snapshot.error);
+            return Scaffold(
+              appBar: this._simpleAppBar(),
+              body: Text('An error occurred!'),
+              bottomNavigationBar: this._bottomNavBar(),
+            );
+          } else {
+            return Scaffold(
+              appBar: BaseAppBar(),
+              body: this._pages[this._selectedPageIndex]['page'],
+              bottomNavigationBar: this._bottomNavBar(),
+            );
+          }
+        }
+      },
     );
   }
 }

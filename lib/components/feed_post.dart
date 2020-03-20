@@ -11,9 +11,8 @@ import 'package:salto/components/comment_widget.dart';
 
 class FeedPost extends StatefulWidget {
   final ContentItem post;
-  final User currentUser;
 
-  FeedPost(this.post, this.currentUser);
+  FeedPost(this.post);
 
   @override
   _FeedPostState createState() => _FeedPostState();
@@ -21,25 +20,27 @@ class FeedPost extends StatefulWidget {
 
 class _FeedPostState extends State<FeedPost> {
   bool _isFavorite;
+  User _signedInUser;
 
   Future<void> _toggleFavorite() async {
     if (!this._isFavorite) {
       await Provider.of<ContentItems>(context, listen: false)
-          .addToFavorites(widget.post, widget.currentUser.id);
+          .addToFavorites(widget.post, this._signedInUser.id);
     } else {
       await Provider.of<ContentItems>(context, listen: false)
-          .removeFromFavorites(widget.post, widget.currentUser.id);
+          .removeFromFavorites(widget.post, this._signedInUser.id);
     }
   }
 
   void _setIsFavorite() {
     setState(() {
-      this._isFavorite = widget.post.likes.any((l) => l == widget.currentUser.id);
+      this._isFavorite = widget.post.likes.any((l) => l == this._signedInUser.id);
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    this._signedInUser = Provider.of<Users>(context).signedInUser;
     this._setIsFavorite();
     final user = Provider.of<Users>(context).findById(widget.post.userId);
     return Center(

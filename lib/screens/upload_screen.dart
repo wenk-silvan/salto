@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:salto/providers/content-items.dart';
+import 'package:salto/providers/users.dart';
 
 import '../models/content-item.dart';
 
@@ -70,8 +71,8 @@ class _UploadScreenState extends State<UploadScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final userId = ModalRoute.of(context).settings.arguments as String;
-    print(userId);
+    var signedInUser = Provider.of<Users>(context).signedInUser;
+    print(signedInUser.id);
     return Scaffold(
       appBar: AppBar(
         title: Text('Add new Post'),
@@ -103,7 +104,7 @@ class _UploadScreenState extends State<UploadScreen> {
                         comments: this._newContentItem.comments,
                         likes: this._newContentItem.likes,
                         mediaUrl: this._imageUrl,
-                        userId: userId,
+                        userId: signedInUser.id,
                         description: this._newContentItem.description,
                       ),
                       validator: (value) {
@@ -123,7 +124,7 @@ class _UploadScreenState extends State<UploadScreen> {
                         comments: this._newContentItem.comments,
                         likes: this._newContentItem.likes,
                         mediaUrl: this._imageUrl,
-                        userId: userId,
+                        userId: signedInUser.id,
                         description: value,
                       ),
                     ),

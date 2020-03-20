@@ -1,101 +1,57 @@
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 
 import '../models/user.dart';
+import 'package:http/http.dart' as http;
 
 class Users with ChangeNotifier {
-  List<User> _users = [
-    User(
-      id: 'ed4f546q',
-      firstName: 'Fleek',
-      lastName: 'Boi',
-      userName: 'fleekboi',
-      description:
-          'Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua.',
-      locality: 'Brussels',
-      age: 21,
-      avatarUrl:
-          'https://upload.wikimedia.org/wikipedia/commons/c/c5/A.J.M._Arkor.jpg',
-      follows: ['5a4f546e', 'hk29fjwk', '14k3l67i'],
-      followers: ['5a4f546e'],
-    ),
-    User(
-      id: '5a4f546e',
-      firstName: 'Jos',
-      lastName: 'Dinky',
-      userName: 'dinky',
-      description: 'Hey there, my name is Jos',
-      locality: 'Berlin',
-      age: 22,
-      avatarUrl: 'https://i.pravatar.cc/150?img=57',
-      follows: ['ed4f546q'],
-      followers: ['ed4f546q'],
-    ),
-    User(
-      id: 'as8f7gjk',
-      firstName: 'Meg',
-      lastName: 'Hardy',
-      userName: 'hard_mi',
-      description: 'Lorem ipsum dolor sit amet, consetetur sadipscing elitr',
-      locality: 'Stockholm',
-      age: 62,
-      avatarUrl:
-          'https://images.unsplash.com/photo-1527025047-354c31c26312?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1950&q=80',
-      follows: ['ed4f546q'],
-      followers: ['ed4f546q'],
-    ),
-    User(
-      id: 'hk29fjwk',
-      firstName: 'Frank',
-      lastName: 'Jordan',
-      userName: 'if-Jay',
-      description: 'Lorem ipsum dolor sit amet, consetetur sadipscing elitr',
-      locality: 'Zurich',
-      age: 18,
-      avatarUrl:
-          'https://images.unsplash.com/photo-1503249023995-51b0f3778ccf?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1822&q=80',
-      follows: ['ed4f546q', 'as8f7gjk'],
-      followers: ['ed4f546q', 'as8f7gjk'],
-    ),
-    User(
-      id: '14k3l67i',
-      firstName: 'Anony',
-      lastName: 'Mouse',
-      userName: 'anoni',
-      description: 'Lorem ipsum dolor sit amet, consetetur sadipscing elitr',
-      locality: 'Hollywood',
-      age: 22,
-      avatarUrl:
-          'https://images.unsplash.com/photo-1549998724-03a9e93f22f6?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1180&q=80',
-      follows: ['ed4f546q'],
-      followers: ['ed4f546q'],
-    ),
-    User(
-      id: 'h059fj4k',
-      firstName: 'Sponge',
-      lastName: 'Bob',
-      userName: 'bikini_guy',
-      description: 'Lorem ipsum dolor sit amet, consetetur sadipscing elitr',
-      locality: 'Bikini Bottom',
-      age: 22,
-      avatarUrl:
-          'https://images.unsplash.com/photo-1565799284935-da1e43e7944e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1050&q=80',
-      follows: ['ed4f546q'],
-      followers: ['ed4f546q'],
-    ),
-  ];
+  static const url = "https://salto-7fab8.firebaseio.com/";
+  List<User> _users = [];
 
-  User currentUser;
+  User signedInUser;
 
   List<User> get users {
     return this._users;
   }
 
+  Future<void> addUser(User user) async {
+    final body = User.toJson(user);
+    final response = await http.post(url + "users.json", body: body);
+    this._users.add(User(
+          id: json.decode(response.body)['name'],
+          userName: user.userName,
+          locality: user.locality,
+          lastName: user.lastName,
+          follows: user.follows,
+          firstName: user.firstName,
+          followers: user.followers,
+          description: user.description,
+          avatarUrl: user.avatarUrl,
+          age: user.age,
+        ));
+    this.notifyListeners();
+  }
+
   User findById(String userId) {
+    if(this._users == null) return null;
     return this._users.firstWhere((u) => u.id == userId);
   }
 
-  void login(String userName) {
-    this.currentUser = this._users.firstWhere((u) => u.userName == userName,
+  Future<void> getUsers() async {
+    final response = await http.get(url + 'users.json');
+    final List<User> loadedUsers = [];
+    final extracted = json.decode(response.body) as Map<String, dynamic>;
+    if (extracted == null) return;
+    extracted.forEach(
+            (id, data) => loadedUsers.add(User.fromJson(id, data)));
+    this._users = loadedUsers.toList();
+    print("Loaded users from database.");
+    this.notifyListeners();
+  }
+
+  User login(String userName) {
+    this.signedInUser = this._users.firstWhere((u) => u.userName == userName,
         orElse: () => User(
               followers: [],
               id: '',
@@ -108,7 +64,8 @@ class Users with ChangeNotifier {
               age: 0,
               avatarUrl: '',
             ));
-    print('Logged in user: ${this.currentUser.userName}');
+    print('Logged in user: ${this.signedInUser.userName}');
+    return this.signedInUser;
   }
 
   List<User> findByName(String text) {
@@ -121,6 +78,6 @@ class Users with ChangeNotifier {
   }
 
   bool follows(String userId) {
-    return this.currentUser.follows.any((f) => f == userId);
+    return this.signedInUser.follows.any((f) => f == userId);
   }
 }

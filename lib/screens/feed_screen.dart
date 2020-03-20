@@ -3,18 +3,19 @@ import 'package:salto/components/feed_post.dart';
 import 'package:provider/provider.dart';
 import 'package:salto/models/user.dart';
 import 'package:salto/providers/content-items.dart';
+import 'package:salto/providers/users.dart';
 
 class FeedScreen extends StatelessWidget {
   final bool isFavorites;
-  final User currentUser;
 
-  FeedScreen({@required this.isFavorites, this.currentUser});
+  FeedScreen({@required this.isFavorites});
 
   @override
   Widget build(BuildContext context) {
+    var signedInUser = Provider.of<Users>(context).signedInUser;
     return FutureBuilder(
       future: Provider.of<ContentItems>(context, listen: false)
-          .getContent(this.currentUser),
+          .getContent(signedInUser),
       builder: (ctx, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Center(child: CircularProgressIndicator());
@@ -28,19 +29,13 @@ class FeedScreen extends StatelessWidget {
             return this.isFavorites
                 ? Consumer<ContentItems>(
                     builder: (ctx, orderData, child) => ListView.builder(
-                      itemBuilder: (_, i) => FeedPost(
-                        orderData.favItems[i],
-                        this.currentUser,
-                      ),
+                      itemBuilder: (_, i) => FeedPost(orderData.favItems[i]),
                       itemCount: orderData.favItems.length,
                     ),
                   )
                 : Consumer<ContentItems>(
                     builder: (ctx, orderData, child) => ListView.builder(
-                      itemBuilder: (_, i) => FeedPost(
-                        orderData.items[i],
-                        this.currentUser,
-                      ),
+                      itemBuilder: (_, i) => FeedPost(orderData.items[i]),
                       itemCount: orderData.items.length,
                     ),
                   );

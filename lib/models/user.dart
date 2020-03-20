@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 
 class User {
@@ -23,4 +25,41 @@ class User {
       this.description,
       @required this.follows,
       @required this.followers});
+
+  static User fromJson(userId, userData) {
+    return User(
+      id: userId,
+      firstName: userData['firstName'],
+      followers: userData['followers'] == null
+          ? []
+          : (userData['followers'] as List<dynamic>)
+          .map((userId) => userId.toString())
+          .toList(),
+      follows: userData['follows'] == null
+          ? []
+          : (userData['follows'] as List<dynamic>)
+          .map((userId) => userId.toString())
+          .toList(),
+      lastName: userData['lastName'],
+      locality: userData['locality'],
+      userName: userData['userName'],
+      age: userData['age'],
+      avatarUrl: userData['avatarUrl'],
+      description: userData['description'],
+    );
+  }
+
+  static String toJson(User user) {
+    return json.encode({
+      'userName': user.userName,
+      'firstName': user.firstName,
+      'lastName': user.lastName,
+      'locality': user.locality,
+      'avatarUrl': user.avatarUrl,
+      'age': user.age,
+      'description': user.description,
+      'follows': user.follows,
+      'followers': user.followers,
+    });
+  }
 }
