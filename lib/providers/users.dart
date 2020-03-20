@@ -80,4 +80,58 @@ class Users with ChangeNotifier {
   bool follows(String userId) {
     return this.signedInUser.follows.any((f) => f == userId);
   }
+
+  Future<void> toggleFollowingStatus(User user) async {
+    var follows = this.signedInUser.follows;
+    var followers = user.followers;
+
+    if (follows.any((f) => f == user.id)) {
+      //Remove
+      follows.remove(user.id);
+      followers.remove(this.signedInUser.id);
+    }
+    else {
+      //Add
+      follows.add(user.id);
+      followers.add(this.signedInUser.id);
+    }
+
+    try {
+      final statusCodeFollowers = await this._updateFollowers(user.id, followers);
+      final statusCodeFollows = await this._updateFollows(follows);
+      if (statusCodeFollowers >= 400 || statusCodeFollows >= 400) {
+        print("Error while changing followers.");
+      }
+      this.notifyListeners();
+    } catch (error) {
+      print(error);
+      this.notifyListeners();
+    }
+  }
+
+  Future<int> _updateFollowers(String userId, List<String> followers) async {
+    final body = json.encode({
+      'followers': followers,
+    });
+    try {
+      final response =
+      await http.patch(url + "/users/$userId.json", body: body);
+      return response.statusCode;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  Future<int> _updateFollows(List<String> follows) async {
+    final body = json.encode({
+      'follows': follows,
+    });
+    try {
+      final response =
+      await http.patch(url + "/users/${this.signedInUser.id}.json", body: body);
+      return response.statusCode;
+    } catch (error) {
+      throw error;
+    }
+  }
 }

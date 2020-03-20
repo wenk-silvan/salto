@@ -27,11 +27,9 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    print('Build profile screen'); //Debugging purposes
     final args = ModalRoute.of(context).settings.arguments as dynamic;
     final userId = args['userId'];
     final userData = Provider.of<Users>(context);
-    userData.login("fleekboi"); //TODO: Fix login
     final user = userData.findById(userId);
     return Scaffold(
       appBar: AppBar(
@@ -39,7 +37,7 @@ class ProfileScreen extends StatelessWidget {
         actions: <Widget>[
           if (userData.signedInUser.id != userId)
             IconButton(
-              onPressed: () => print('Let\'s follow ${user.userName}'),
+              onPressed: () => userData.toggleFollowingStatus(user),
               color: Colors.white,
               icon: Icon(
                   userData.follows(userId) ? Icons.star : Icons.star_border),

@@ -34,7 +34,7 @@ class _TabsScreenState extends State<TabsScreen> {
         ),
         BottomNavigationBarItem(
           backgroundColor: Theme.of(context).primaryColor,
-          icon: Icon(Icons.favorite_border),
+          icon: Icon(Icons.star),
           title: Text('Following'),
         ),
       ],
@@ -44,7 +44,7 @@ class _TabsScreenState extends State<TabsScreen> {
   Future<void> _initialize(BuildContext ctx) async {
     this._userData = Provider.of<Users>(ctx, listen: false);
     await this._userData.getUsers();
-    this._userData.login('fleekboi');
+    this._userData.login('hard_mi');
   }
 
   void _selectPage(int index) {
