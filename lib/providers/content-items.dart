@@ -52,6 +52,41 @@ class ContentItems with ChangeNotifier {
     }
   }
 
+  List<ContentItem> findByTitle(String text) {
+    return this
+        ._items
+        .where((i) => i.title.toLowerCase().contains(text.toLowerCase()))
+        .toList();
+  }
+
+  Future<void> getContent(User signedInUser) async {
+    this._favoriteUserIds = signedInUser.follows;
+    final response = await http.get(url + 'content.json');
+    final List<ContentItem> loadedContent = [];
+    final extracted = json.decode(response.body) as Map<String, dynamic>;
+    if (extracted == null) return;
+    extracted.forEach(
+        (id, data) => loadedContent.add(ContentItem.fromJson(id, data)));
+    this._items = loadedContent.toList();
+    print("Loaded content from database.");
+    this.notifyListeners();
+  }
+
+  List<String> getContentByUserId(String userId) {
+    return this
+        ._items
+        .where((i) => i.userId == userId)
+        .map((i) => i.mediaUrl)
+        .toList();
+  }
+
+  List<ContentItem> getContentOfUsers(List<String> userIds) {
+    List<ContentItem> items = [];
+    userIds.forEach(
+        (id) => items.addAll(this._items.where((i) => i.userId == id)));
+    return items;
+  }
+
   Future<void> removeFromFavorites(ContentItem post, String userId) async {
     post.likes.remove(userId);
     try {
@@ -66,34 +101,6 @@ class ContentItems with ChangeNotifier {
       post.likes.add(userId);
       this.notifyListeners();
     }
-  }
-
-  Future<void> getContent(User user) async {
-    this._favoriteUserIds = user.follows;
-    final response = await http.get(url + 'content.json');
-    final List<ContentItem> loadedContent = [];
-    final extracted = json.decode(response.body) as Map<String, dynamic>;
-    if (extracted == null) return;
-    extracted.forEach(
-        (id, data) => loadedContent.add(ContentItem.fromJson(id, data)));
-    this._items = loadedContent.toList();
-    print("Loaded content from database.");
-    this.notifyListeners();
-  }
-
-  List<String> getMediaByUserId(String userId) {
-    return this
-        ._items
-        .where((i) => i.userId == userId)
-        .map((i) => i.mediaUrl)
-        .toList();
-  }
-
-  List<ContentItem> getContentOfUsers(List<String> userIds) {
-    List<ContentItem> items = [];
-    userIds.forEach(
-        (id) => items.addAll(this._items.where((i) => i.userId == id)));
-    return items;
   }
 
   Future<int> _updateLikesOfPost(List<String> likes, String postId) async {

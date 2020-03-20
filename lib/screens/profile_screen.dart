@@ -89,7 +89,7 @@ class ProfileScreen extends StatelessWidget {
           SizedBox(height: 10),
           Consumer<ContentItems>(builder: (ctx, contentItemsData, _) {
             final userContentMediaUrls =
-                contentItemsData.getMediaByUserId(userId);
+                contentItemsData.getContentByUserId(userId);
             return SingleChildScrollView(
               child: Container(
                 width: double.infinity,

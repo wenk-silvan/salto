@@ -12,11 +12,15 @@ class CircleAvatarButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       child: new Padding(
-        padding: const EdgeInsets.only(
-            left: 5.0, right: 10.0, top: 5.0, bottom: 10.0),
+        padding: const EdgeInsets.all(10.0),
         child: CircleAvatar(
           child: ClipOval(
-            child: Image.network(user.avatarUrl),
+            child: Image.network(
+              user.avatarUrl,
+              fit: BoxFit.cover,
+              width: 90.0,
+              height: 90.0,
+            ),
           ),
         ),
       ),
@@ -25,7 +29,7 @@ class CircleAvatarButton extends StatelessWidget {
           ProfileScreen.route,
           arguments: {
             'userId': this.user.id,
-            'currentUserId': this.user.id,  //TODO: Use ID of signed in User.
+            'currentUserId': this.user.id, //TODO: Use ID of signed in User.
           },
         );
       },
