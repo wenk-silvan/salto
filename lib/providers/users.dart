@@ -119,4 +119,8 @@ class Users with ChangeNotifier {
           u.userName.toLowerCase().contains(lowerCaseText);
     }).toList();
   }
+
+  bool follows(String userId) {
+    return this.currentUser.follows.any((f) => f == userId);
+  }
 }

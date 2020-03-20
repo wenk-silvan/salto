@@ -30,19 +30,20 @@ class ProfileScreen extends StatelessWidget {
     print('Build profile screen'); //Debugging purposes
     final args = ModalRoute.of(context).settings.arguments as dynamic;
     final userId = args['userId'];
-    final currentUserId = args['currentUserId'];
     final userData = Provider.of<Users>(context);
+    userData.login("fleekboi"); //TODO: Fix login
     final user = userData.findById(userId);
-    final bool isMyProfile = (userId == currentUserId);
     return Scaffold(
       appBar: AppBar(
         title: Text(user.userName),
         actions: <Widget>[
-          if(!isMyProfile) IconButton(
-            onPressed: () => print('Let\'s follow ${user.userName}'),
-            color: Colors.white,
-            icon: Icon(Icons.favorite_border),
-          ),
+          if (userData.currentUser.id != userId)
+            IconButton(
+              onPressed: () => print('Let\'s follow ${user.userName}'),
+              color: Colors.white,
+              icon: Icon(
+                  userData.follows(userId) ? Icons.star : Icons.star_border),
+            ),
         ],
       ),
       body: Column(
@@ -72,7 +73,8 @@ class ProfileScreen extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: <Widget>[
-                this._buildChip(context, '${user.followers.length} ${user.followers.length == 1 ? 'Follower' : 'Followers'}'),
+                this._buildChip(context,
+                    '${user.followers.length} ${user.followers.length == 1 ? 'Follower' : 'Followers'}'),
                 this._buildChip(context, user.locality),
               ],
             ),

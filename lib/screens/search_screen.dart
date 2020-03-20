@@ -52,6 +52,7 @@ class _SearchScreenState extends State<SearchScreen> {
 
   @override
   Widget build(BuildContext context) {
+    Provider.of<Users>(context, listen: false).login("fleekboi"); //TODO: Fix
     return DefaultTabController(
       length: 2,
       child: Scaffold(

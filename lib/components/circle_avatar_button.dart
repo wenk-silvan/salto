@@ -29,7 +29,6 @@ class CircleAvatarButton extends StatelessWidget {
           ProfileScreen.route,
           arguments: {
             'userId': this.user.id,
-            'currentUserId': this.user.id, //TODO: Use ID of signed in User.
           },
         );
       },

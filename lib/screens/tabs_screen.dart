@@ -41,6 +41,12 @@ class _TabsScreenState extends State<TabsScreen> {
     super.initState();
   }
 
+  @override
+  void didChangeDependencies() {
+    Provider.of<Users>(context, listen: false).login('fleekboi');
+    super.didChangeDependencies();
+  }
+
   void _selectPage(int index) {
     setState(() {
       this._selectedPageIndex = index;

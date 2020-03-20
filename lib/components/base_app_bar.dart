@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:salto/components/circle_avatar_button.dart';
 import 'package:salto/screens/search_screen.dart';
 import 'package:salto/screens/settings_screen.dart';
-import 'package:salto/screens/profile_screen.dart';
 import 'package:salto/screens/upload_screen.dart';
 
 import '../models/user.dart';
