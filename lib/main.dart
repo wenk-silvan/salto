@@ -4,11 +4,11 @@ import 'package:salto/providers/auth.dart';
 import 'package:salto/providers/content-items.dart';
 import 'package:salto/providers/users.dart';
 import 'package:salto/screens/auth_screen.dart';
-import 'package:salto/screens/feed_screen.dart';
 import 'package:salto/screens/post_screen.dart';
 import 'package:salto/screens/profile_screen.dart';
 import 'package:salto/screens/search_screen.dart';
 import 'package:salto/screens/settings_screen.dart';
+import 'package:salto/screens/splash_screen.dart';
 import 'package:salto/screens/tabs_screen.dart';
 import 'package:salto/screens/upload_screen.dart';
 
@@ -24,7 +24,8 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider.value(value: Users()),
         ChangeNotifierProvider.value(value: Auth()),
       ],
-      child: MaterialApp(
+      child: Consumer<Auth>(
+        builder: (ctx, auth, _) => MaterialApp(
           title: 'Salto',
           theme: ThemeData(
             primarySwatch: Colors.purple,
@@ -34,7 +35,16 @@ class MyApp extends StatelessWidget {
               title: TextStyle(color: Colors.white),
             ),
           ),
-          home: AuthScreen(),
+          home: auth.isAuth
+              ? TabsScreen()
+              : FutureBuilder(
+                  future: auth.tryAutoLogin(),
+                  builder: (ctx, authResultSnapshot) =>
+                      authResultSnapshot.connectionState ==
+                              ConnectionState.waiting
+                          ? SplashScreen()
+                          : AuthScreen(),
+                ),
           routes: {
             PostScreen.route: (ctx) => PostScreen(),
             SettingsScreen.route: (ctx) => SettingsScreen(),
@@ -42,8 +52,10 @@ class MyApp extends StatelessWidget {
             ProfileScreen.route: (ctx) => ProfileScreen(),
             SearchScreen.route: (ctx) => SearchScreen(),
           },
-          onUnknownRoute: (settings) => MaterialPageRoute(
-              builder: (ctx) => TabsScreen())),
+          onUnknownRoute: (settings) =>
+              MaterialPageRoute(builder: (ctx) => TabsScreen()),
+        ),
+      ),
     );
   }
 }

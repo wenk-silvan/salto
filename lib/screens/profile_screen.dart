@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:salto/providers/auth.dart';
 import 'package:salto/providers/content-items.dart';
 import 'package:salto/providers/users.dart';
 
@@ -25,23 +26,37 @@ class ProfileScreen extends StatelessWidget {
         backgroundColor: Theme.of(ctx).primaryColor,
       );
 
+  void _logout(BuildContext ctx) {
+    Provider.of<Auth>(ctx).logout();
+    Navigator.pop(ctx);
+  }
+
   @override
   Widget build(BuildContext context) {
     final args = ModalRoute.of(context).settings.arguments as dynamic;
     final userId = args['userId'];
     final userData = Provider.of<Users>(context);
     final user = userData.findById(userId);
+    final isMe = userData.signedInUser.id == userId;
     return Scaffold(
       appBar: AppBar(
         title: Text(user.userName),
         actions: <Widget>[
-          if (userData.signedInUser.id != userId)
+          if (isMe)
+            FlatButton(
+              onPressed: () => this._logout(context),
+              child: Text(
+                'LOGOUT',
+                style: TextStyle(color: Colors.white),
+              ),
+            )
+          else
             IconButton(
               onPressed: () => userData.toggleFollowingStatus(user),
               color: Colors.white,
               icon: Icon(
                   userData.follows(userId) ? Icons.star : Icons.star_border),
-            ),
+            )
         ],
       ),
       body: Column(
@@ -88,8 +103,7 @@ class ProfileScreen extends StatelessWidget {
           ),
           SizedBox(height: 10),
           Consumer<ContentItems>(builder: (ctx, content, _) {
-            final contentUrls =
-                content.getContentByUserId(userId);
+            final contentUrls = content.getContentByUserId(userId);
             return SingleChildScrollView(
               child: Container(
                 width: double.infinity,

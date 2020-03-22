@@ -105,7 +105,7 @@ class Auth with ChangeNotifier {
     }
     this.notifyListeners();
     final prefs = await SharedPreferences.getInstance();
-    //prefs.remove('userData');
+    prefs.remove('userData');
     prefs.clear();
   }
 
