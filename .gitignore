@@ -74,3 +74,4 @@
 assets/videos/*
 .flutter-plugins-dependencies
 android/app/google-services.json
+secrets.json
