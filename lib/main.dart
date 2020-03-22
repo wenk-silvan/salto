@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:salto/providers/auth.dart';
 import 'package:salto/providers/content-items.dart';
 import 'package:salto/providers/users.dart';
+import 'package:salto/screens/auth_screen.dart';
 import 'package:salto/screens/feed_screen.dart';
 import 'package:salto/screens/post_screen.dart';
 import 'package:salto/screens/profile_screen.dart';
@@ -20,6 +22,7 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider.value(value: ContentItems()),
         ChangeNotifierProvider.value(value: Users()),
+        ChangeNotifierProvider.value(value: Auth()),
       ],
       child: MaterialApp(
           title: 'Salto',
@@ -31,9 +34,8 @@ class MyApp extends StatelessWidget {
               title: TextStyle(color: Colors.white),
             ),
           ),
-          initialRoute: '/',
+          home: AuthScreen(),
           routes: {
-            '/': (ctx) => TabsScreen(),
             PostScreen.route: (ctx) => PostScreen(),
             SettingsScreen.route: (ctx) => SettingsScreen(),
             UploadScreen.route: (ctx) => UploadScreen(),
