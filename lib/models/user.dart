@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 class User {
   final String id;
+  final String uuid;
   final String userName;
   final String firstName;
   final String lastName;
@@ -16,6 +17,7 @@ class User {
 
   const User(
       {@required this.id,
+      @required this.uuid,
       @required this.userName,
       @required this.firstName,
       @required this.lastName,
@@ -29,6 +31,7 @@ class User {
   static User fromJson(userId, userData) {
     return User(
       id: userId,
+      uuid: userData['uuid'],
       firstName: userData['firstName'],
       followers: userData['followers'] == null
           ? []
@@ -51,6 +54,7 @@ class User {
 
   static String toJson(User user) {
     return json.encode({
+      'uuid': user.uuid,
       'userName': user.userName,
       'firstName': user.firstName,
       'lastName': user.lastName,

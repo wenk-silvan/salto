@@ -28,7 +28,7 @@ class AuthScreen extends StatelessWidget {
                     ),
                     subtitle: Text('Freestyle Trampoline Community App'),
                   ),
-                  SizedBox(height: deviceSize.height * 0.1),
+                  SizedBox(height: deviceSize.height * 0.05),
                   AuthActions(),
                 ],
               ),

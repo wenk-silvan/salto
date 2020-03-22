@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:salto/models/http_exception.dart';
+import 'package:salto/models/user.dart';
 import 'package:salto/providers/auth.dart';
+import 'package:salto/providers/users.dart';
 
 enum AuthMode { Signup, Login }
 
@@ -19,6 +21,26 @@ class _AuthActionsState extends State<AuthActions> {
   };
   var _isLoading = false;
   final _passwordController = TextEditingController();
+  final _firstNameController = TextEditingController();
+  final _lastNameController = TextEditingController();
+  final _userNameController = TextEditingController();
+
+  void _addNewUser() {
+    final uuid = Provider.of<Auth>(context).userId;
+    Provider.of<Users>(context).addUser(User(
+      followers: [],
+      firstName: this._firstNameController.text,
+      follows: [],
+      lastName: this._lastNameController.text,
+      locality: '',
+      userName: this._userNameController.text,
+      uuid: uuid,
+      age: 0,
+      avatarUrl: 'http://wilkinsonschool.org/wp-content/uploads/2018/10/user-default-grey.png',
+      description: '',
+      id: '',
+    ));
+  }
 
   void _showErrorDialog(String message) {
     showDialog(
@@ -54,7 +76,7 @@ class _AuthActionsState extends State<AuthActions> {
         await Provider.of<Auth>(context, listen: false).signup(
           _authData['email'],
           _authData['password'],
-        );
+        ).then((_) => this._addNewUser());
       }
     } on HttpException catch (error) {
       var errorMessage = 'Auhentication failed';
@@ -103,6 +125,52 @@ class _AuthActionsState extends State<AuthActions> {
         child: SingleChildScrollView(
           child: Column(
             children: <Widget>[
+              if (_authMode == AuthMode.Signup)
+                TextFormField(
+                  enabled: _authMode == AuthMode.Signup,
+                  decoration: InputDecoration(labelText: 'User Name'),
+                  controller: this._userNameController,
+                  validator: _authMode == AuthMode.Signup
+                      ? (value) {
+                    if (value.length < 3) {
+                      return 'User name is to short.';
+                    } else if (value.length > 20)
+                      return 'User name is to long.';
+                  }
+                      : null,
+                ),
+              if (_authMode == AuthMode.Signup)
+                TextFormField(
+                  enabled: _authMode == AuthMode.Signup,
+                  decoration: InputDecoration(labelText: 'First Name'),
+                  controller: this._firstNameController,
+                  validator: _authMode == AuthMode.Signup
+                      ? (value) {
+                    if (value.length < 3) {
+                      if (value.length < 3) {
+                        return 'First name is to short.';
+                      } else if (value.length > 20)
+                        return 'First name is to long.';
+                    }
+                  }
+                      : null,
+                ),
+              if (_authMode == AuthMode.Signup)
+                TextFormField(
+                  enabled: _authMode == AuthMode.Signup,
+                  decoration: InputDecoration(labelText: 'Last Name'),
+                  controller: this._lastNameController,
+                  validator: _authMode == AuthMode.Signup
+                      ? (value) {
+                    if (value.length < 3) {
+                      if (value.length < 3) {
+                        return 'Last name is to short.';
+                      } else if (value.length > 20)
+                        return 'Last name is to long.';
+                    }
+                  }
+                      : null,
+                ),
               TextFormField(
                 decoration: InputDecoration(labelText: 'E-Mail'),
                 keyboardType: TextInputType.emailAddress,

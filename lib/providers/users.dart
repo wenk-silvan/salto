@@ -17,19 +17,34 @@ class Users with ChangeNotifier {
 
   Future<void> addUser(User user) async {
     final body = User.toJson(user);
-    final response = await http.post(url + "users.json", body: body);
     this._users.add(User(
-          id: json.decode(response.body)['name'],
-          userName: user.userName,
-          locality: user.locality,
-          lastName: user.lastName,
-          follows: user.follows,
-          firstName: user.firstName,
-          followers: user.followers,
-          description: user.description,
-          avatarUrl: user.avatarUrl,
-          age: user.age,
-        ));
+      id: user.id,
+      uuid: user.uuid,
+      userName: user.userName,
+      locality: user.locality,
+      lastName: user.lastName,
+      follows: user.follows,
+      firstName: user.firstName,
+      followers: user.followers,
+      description: user.description,
+      avatarUrl: user.avatarUrl,
+      age: user.age,
+    ));
+    final response = await http.post(url + "users.json", body: body);
+    this._users.removeWhere((u) => u.uuid == user.uuid);
+    this._users.add(User(
+      id: json.decode(response.body)['name'],
+      uuid: user.uuid,
+      userName: user.userName,
+      locality: user.locality,
+      lastName: user.lastName,
+      follows: user.follows,
+      firstName: user.firstName,
+      followers: user.followers,
+      description: user.description,
+      avatarUrl: user.avatarUrl,
+      age: user.age,
+    ));
     this.notifyListeners();
   }
 
@@ -50,8 +65,8 @@ class Users with ChangeNotifier {
     this.notifyListeners();
   }
 
-  User login(String userName) {
-    this.signedInUser = this._users.firstWhere((u) => u.userName == userName,
+  User login(String uuid) {
+    this.signedInUser = this._users.firstWhere((u) => u.uuid == uuid,
         orElse: () => User(
               followers: [],
               id: '',
@@ -64,7 +79,7 @@ class Users with ChangeNotifier {
               age: 0,
               avatarUrl: '',
             ));
-    print('Logged in user: ${this.signedInUser.userName}');
+    print('Logged in user: ${this.signedInUser.userName} - uuid: $uuid');
     return this.signedInUser;
   }
 

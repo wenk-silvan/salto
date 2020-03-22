@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:salto/components/base_app_bar.dart';
+import 'package:salto/providers/auth.dart';
 import 'package:salto/providers/users.dart';
 import 'package:salto/screens/feed_screen.dart';
 
@@ -44,7 +45,8 @@ class _TabsScreenState extends State<TabsScreen> {
   Future<void> _initialize(BuildContext ctx) async {
     this._userData = Provider.of<Users>(ctx, listen: false);
     await this._userData.getUsers();
-    this._userData.login('hard_mi');
+    final uuid = Provider.of<Auth>(ctx, listen: false).userId;
+    this._userData.login(uuid);
   }
 
   void _selectPage(int index) {
