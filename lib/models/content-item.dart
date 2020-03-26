@@ -25,6 +25,19 @@ class ContentItem {
     @required this.likes,
   });
 
+  static ContentItem copy(ContentItem item, itemId) {
+    return ContentItem(
+      id: itemId,
+      likes: item.likes,
+      userId: item.userId,
+      comments: item.comments,
+      title: item.title,
+      mediaUrl: item.mediaUrl,
+      timestamp: item.timestamp,
+      description: item.description,
+    );
+  }
+
   static ContentItem fromJson(contentItemId, contentItemData) {
     return ContentItem(
       id: contentItemId,
