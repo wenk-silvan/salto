@@ -22,13 +22,15 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider.value(value: Auth()),
         ChangeNotifierProxyProvider<Auth, ContentItems>(
-          builder: (ctx, auth, previousItems) => ContentItems(
-              auth.token,
+          create: (BuildContext ctx) => null,
+          update: (ctx, auth, previousItems) => ContentItems(
+            auth.token,
             previousItems == null ? [] : previousItems.items,
           ),
         ),
         ChangeNotifierProxyProvider<Auth, Users>(
-          builder: (ctx, auth, previousUsers) => Users(
+          create: (BuildContext ctx) => null,
+          update: (ctx, auth, previousUsers) => Users(
             auth.token,
             previousUsers == null ? [] : previousUsers.users,
           ),

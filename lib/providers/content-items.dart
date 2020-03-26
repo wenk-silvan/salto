@@ -27,17 +27,9 @@ class ContentItems with ChangeNotifier {
 
   Future<void> addContent(ContentItem item) async {
     final body = ContentItem.toJson(item);
-    final response = await http.post('$url/content.json$authString', body: body);
-    this.items.add(ContentItem(
-          id: json.decode(response.body)['name'],
-          likes: item.likes,
-          userId: item.userId,
-          comments: item.comments,
-          title: item.title,
-          mediaUrl: item.mediaUrl,
-          timestamp: item.timestamp,
-          description: item.description,
-        ));
+    final response =
+        await http.post('$url/content.json$authString', body: body);
+    this.items.add(ContentItem.copy(item, json.decode(response.body)['name']));
     this.notifyListeners();
   }
 

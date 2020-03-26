@@ -23,34 +23,10 @@ class Users with ChangeNotifier {
 
   Future<void> addUser(User user) async {
     final body = User.toJson(user);
-    this._users.add(User(
-          id: user.id,
-          uuid: user.uuid,
-          userName: user.userName,
-          locality: user.locality,
-          lastName: user.lastName,
-          follows: user.follows,
-          firstName: user.firstName,
-          followers: user.followers,
-          description: user.description,
-          avatarUrl: user.avatarUrl,
-          age: user.age,
-        ));
+    this._users.add(User.copy(user, user.id));
     final response = await http.post('$url/users.json$authString', body: body);
     this._users.removeWhere((u) => u.uuid == user.uuid);
-    this._users.add(User(
-          id: json.decode(response.body)['name'],
-          uuid: user.uuid,
-          userName: user.userName,
-          locality: user.locality,
-          lastName: user.lastName,
-          follows: user.follows,
-          firstName: user.firstName,
-          followers: user.followers,
-          description: user.description,
-          avatarUrl: user.avatarUrl,
-          age: user.age,
-        ));
+    this._users.add(User.copy(user, json.decode(response.body)['name']));
     this.notifyListeners();
   }
 
@@ -71,19 +47,9 @@ class Users with ChangeNotifier {
   }
 
   User login(String uuid) {
-    this.signedInUser = this._users.firstWhere((u) => u.uuid == uuid,
-        orElse: () => User(
-              followers: [],
-              id: '',
-              firstName: '',
-              follows: [],
-              lastName: '',
-              locality: '',
-              userName: '',
-              description: '',
-              age: 0,
-              avatarUrl: '',
-            ));
+    this.signedInUser = this
+        ._users
+        .firstWhere((u) => u.uuid == uuid, orElse: () => User.initialize());
     print('Logged in user: ${this.signedInUser.userName} - uuid: $uuid');
     return this.signedInUser;
   }

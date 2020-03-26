@@ -28,6 +28,22 @@ class User {
       @required this.follows,
       @required this.followers});
 
+  static User copy(User user, String userId) {
+    return User(
+      id: userId,
+      uuid: user.uuid,
+      userName: user.userName,
+      locality: user.locality,
+      lastName: user.lastName,
+      follows: user.follows,
+      firstName: user.firstName,
+      followers: user.followers,
+      description: user.description,
+      avatarUrl: user.avatarUrl,
+      age: user.age,
+    );
+  }
+
   static User fromJson(userId, userData) {
     return User(
       id: userId,
@@ -49,6 +65,22 @@ class User {
       age: userData['age'],
       avatarUrl: userData['avatarUrl'],
       description: userData['description'],
+    );
+  }
+
+  static User initialize() {
+    return User(
+      followers: [],
+      id: '',
+      firstName: '',
+      follows: [],
+      lastName: '',
+      locality: '',
+      userName: '',
+      description: '',
+      age: 0,
+      avatarUrl: ''
+      , uuid: null,
     );
   }
 
