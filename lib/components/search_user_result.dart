@@ -51,7 +51,13 @@ class SearchUserResult extends StatelessWidget {
                         ),
                       ],
                     ),
-                    Icon(isFollowing ? Icons.star : Icons.star_border),
+                    Consumer<Users>(
+                      builder: (ctx, users, child) => IconButton(
+                        onPressed: () => users.toggleFollowingStatus(user),
+                        icon: Icon(
+                            users.follows(this.user.id) ? Icons.star : Icons.star_border),
+                      ),
+                    ),
                   ],
                 ),
               ),
