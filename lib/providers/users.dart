@@ -6,10 +6,16 @@ import '../models/user.dart';
 import 'package:http/http.dart' as http;
 
 class Users with ChangeNotifier {
-  static const url = "https://salto-7fab8.firebaseio.com/";
+  static const url = "https://salto-7fab8.firebaseio.com";
+  String authString;
+  final String authToken;
   List<User> _users = [];
 
   User signedInUser;
+
+  Users(this.authToken, this._users) {
+    this.authString = '?auth=$authToken';
+  }
 
   List<User> get users {
     return this._users;
@@ -18,48 +24,47 @@ class Users with ChangeNotifier {
   Future<void> addUser(User user) async {
     final body = User.toJson(user);
     this._users.add(User(
-      id: user.id,
-      uuid: user.uuid,
-      userName: user.userName,
-      locality: user.locality,
-      lastName: user.lastName,
-      follows: user.follows,
-      firstName: user.firstName,
-      followers: user.followers,
-      description: user.description,
-      avatarUrl: user.avatarUrl,
-      age: user.age,
-    ));
-    final response = await http.post(url + "users.json", body: body);
+          id: user.id,
+          uuid: user.uuid,
+          userName: user.userName,
+          locality: user.locality,
+          lastName: user.lastName,
+          follows: user.follows,
+          firstName: user.firstName,
+          followers: user.followers,
+          description: user.description,
+          avatarUrl: user.avatarUrl,
+          age: user.age,
+        ));
+    final response = await http.post('$url/users.json$authString', body: body);
     this._users.removeWhere((u) => u.uuid == user.uuid);
     this._users.add(User(
-      id: json.decode(response.body)['name'],
-      uuid: user.uuid,
-      userName: user.userName,
-      locality: user.locality,
-      lastName: user.lastName,
-      follows: user.follows,
-      firstName: user.firstName,
-      followers: user.followers,
-      description: user.description,
-      avatarUrl: user.avatarUrl,
-      age: user.age,
-    ));
+          id: json.decode(response.body)['name'],
+          uuid: user.uuid,
+          userName: user.userName,
+          locality: user.locality,
+          lastName: user.lastName,
+          follows: user.follows,
+          firstName: user.firstName,
+          followers: user.followers,
+          description: user.description,
+          avatarUrl: user.avatarUrl,
+          age: user.age,
+        ));
     this.notifyListeners();
   }
 
   User findById(String userId) {
-    if(this._users == null) return null;
+    if (this._users == null) return null;
     return this._users.firstWhere((u) => u.id == userId);
   }
 
   Future<void> getUsers() async {
-    final response = await http.get(url + 'users.json');
+    final response = await http.get('$url/users.json$authString');
     final List<User> loadedUsers = [];
     final extracted = json.decode(response.body) as Map<String, dynamic>;
     if (extracted == null) return;
-    extracted.forEach(
-            (id, data) => loadedUsers.add(User.fromJson(id, data)));
+    extracted.forEach((id, data) => loadedUsers.add(User.fromJson(id, data)));
     this._users = loadedUsers.toList();
     print("Loaded users from database.");
     this.notifyListeners();
@@ -104,15 +109,15 @@ class Users with ChangeNotifier {
       //Remove
       follows.remove(user.id);
       followers.remove(this.signedInUser.id);
-    }
-    else {
+    } else {
       //Add
       follows.add(user.id);
       followers.add(this.signedInUser.id);
     }
 
     try {
-      final statusCodeFollowers = await this._updateFollowers(user.id, followers);
+      final statusCodeFollowers =
+          await this._updateFollowers(user.id, followers);
       final statusCodeFollows = await this._updateFollows(follows);
       if (statusCodeFollowers >= 400 || statusCodeFollows >= 400) {
         print("Error while changing followers.");
@@ -130,7 +135,7 @@ class Users with ChangeNotifier {
     });
     try {
       final response =
-      await http.patch(url + "/users/$userId.json", body: body);
+          await http.patch('$url/users/$userId.json$authString', body: body);
       return response.statusCode;
     } catch (error) {
       throw error;
@@ -142,8 +147,9 @@ class Users with ChangeNotifier {
       'follows': follows,
     });
     try {
-      final response =
-      await http.patch(url + "/users/${this.signedInUser.id}.json", body: body);
+      final response = await http.patch(
+          '$url/users/${this.signedInUser.id}.json$authString',
+          body: body);
       return response.statusCode;
     } catch (error) {
       throw error;

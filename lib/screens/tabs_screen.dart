@@ -81,7 +81,7 @@ class _TabsScreenState extends State<TabsScreen> {
             print(snapshot.error);
             return Scaffold(
               appBar: this._simpleAppBar(),
-              body: Text('An error occurred!'),
+              body: Center(child: Text('An error occurred!')),
               bottomNavigationBar: this._bottomNavBar(),
             );
           } else {

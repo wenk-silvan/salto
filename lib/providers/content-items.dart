@@ -7,9 +7,15 @@ import '../models/content-item.dart';
 import 'package:http/http.dart' as http;
 
 class ContentItems with ChangeNotifier {
-  static const url = "https://salto-7fab8.firebaseio.com/";
+  static const url = "https://salto-7fab8.firebaseio.com";
+  String authString;
+  final String authToken;
   List<String> _favoriteUserIds = [];
   List<ContentItem> _items = [];
+
+  ContentItems(this.authToken, this._items) {
+    this.authString = '?auth=$authToken';
+  }
 
   List<ContentItem> get items {
     return this._items;
@@ -21,7 +27,7 @@ class ContentItems with ChangeNotifier {
 
   Future<void> addContent(ContentItem item) async {
     final body = ContentItem.toJson(item);
-    final response = await http.post(url + "content.json", body: body);
+    final response = await http.post('$url/content.json$authString', body: body);
     this.items.add(ContentItem(
           id: json.decode(response.body)['name'],
           likes: item.likes,
@@ -60,7 +66,7 @@ class ContentItems with ChangeNotifier {
 
   Future<void> getContent(User signedInUser) async {
     this._favoriteUserIds = signedInUser.follows;
-    final response = await http.get(url + 'content.json');
+    final response = await http.get('$url/content.json$authString');
     final List<ContentItem> loadedContent = [];
     final extracted = json.decode(response.body) as Map<String, dynamic>;
     if (extracted == null) return;
@@ -108,7 +114,7 @@ class ContentItems with ChangeNotifier {
     });
     try {
       final response =
-          await http.patch(url + "/content/$postId.json", body: body);
+          await http.patch('$url/content/$postId.json$authString', body: body);
       return response.statusCode;
     } catch (error) {
       throw error;
