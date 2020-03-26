@@ -25,7 +25,7 @@ class SearchUserResult extends StatelessWidget {
         onTap: () => this._navigateToProfile(context),
         child: Row(
           children: <Widget>[
-            CircleAvatarButton(this.user),
+            CircleAvatarButton(user: this.user, backgroundColor: Colors.white),
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.only(right: 20),

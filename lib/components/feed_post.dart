@@ -51,7 +51,7 @@ class _FeedPostState extends State<FeedPost> {
             Row(
               children: <Widget>[
                 //Avatar
-                CircleAvatarButton(user),
+                CircleAvatarButton(user: user, backgroundColor: Colors.white),
                 Text(
                   widget.post.title,
                   style: TextStyle(fontWeight: FontWeight.bold),

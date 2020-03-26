@@ -5,8 +5,9 @@ import 'package:salto/screens/profile_screen.dart';
 
 class CircleAvatarButton extends StatelessWidget {
   User user;
+  Color backgroundColor;
 
-  CircleAvatarButton(this.user);
+  CircleAvatarButton({this.user, this.backgroundColor});
 
   @override
   Widget build(BuildContext context) {
@@ -14,6 +15,7 @@ class CircleAvatarButton extends StatelessWidget {
       child: new Padding(
         padding: const EdgeInsets.all(10.0),
         child: CircleAvatar(
+          backgroundColor: this.backgroundColor,
           child: ClipOval(
             child: Image.network(
               user.avatarUrl,
