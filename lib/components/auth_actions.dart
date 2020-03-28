@@ -26,20 +26,23 @@ class _AuthActionsState extends State<AuthActions> {
   final _userNameController = TextEditingController();
 
   void _addNewUser() {
-    final uuid = Provider.of<Auth>(context).userId;
-    Provider.of<Users>(context).addUser(User(
-      followers: [],
-      firstName: this._firstNameController.text,
-      follows: [],
-      lastName: this._lastNameController.text,
-      locality: '',
-      userName: this._userNameController.text,
-      uuid: uuid,
-      age: 0,
-      avatarUrl: 'http://wilkinsonschool.org/wp-content/uploads/2018/10/user-default-grey.png',
-      description: '',
-      id: '',
-    ));
+    try {
+        Provider.of<Auth>(context, listen: false).addUser(User(
+        followers: [],
+        firstName: this._firstNameController.text,
+        follows: [],
+        lastName: this._lastNameController.text,
+        locality: '',
+        userName: this._userNameController.text,
+        uuid: Provider.of<Auth>(context, listen: false).userId,
+        age: 0,
+        avatarUrl: 'http://wilkinsonschool.org/wp-content/uploads/2018/10/user-default-grey.png',
+        description: '',
+        id: '',
+      ), Provider.of<Users>(context));
+    } catch (error) {
+      Provider.of<Auth>(context, listen: false).logout();
+    }
   }
 
   void _showErrorDialog(String message) {
@@ -76,7 +79,8 @@ class _AuthActionsState extends State<AuthActions> {
         await Provider.of<Auth>(context, listen: false).signup(
           _authData['email'],
           _authData['password'],
-        ).then((_) => this._addNewUser());
+        );
+        this._addNewUser();
       }
     } on HttpException catch (error) {
       var errorMessage = 'Auhentication failed';

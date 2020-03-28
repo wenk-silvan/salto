@@ -3,6 +3,8 @@ import 'dart:convert';
 
 import 'package:flutter/widgets.dart';
 import 'package:salto/models/http_exception.dart';
+import 'package:salto/models/user.dart';
+import 'package:salto/providers/users.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 
@@ -14,22 +16,39 @@ class Auth with ChangeNotifier {
   DateTime _expiryDate;
   String _userId;
   Timer _authTimer;
+  bool _signingUp = false;
 
   bool get isAuth {
     return this.token != null;
   }
 
+
   String get token {
     if (this._expiryDate != null &&
         this._expiryDate.isAfter(DateTime.now()) &&
-        this._token != null) {
+        this._token != null &&
+        !this._signingUp) {
       return this._token;
     }
     return null;
   }
 
-  String get userId {
-    return this._userId;
+  String get userId => this._userId;
+
+  Future<void> addUser(User user, Users userData) async {
+    try {
+      final uri = 'https://salto-7fab8.firebaseio.com/users.json?auth=$_token';
+      final response = await http.post('$uri', body: User.toJson(user));
+      final responseBody = json.decode(response.body);
+      if (response.statusCode >= 400) {
+        this._signingUp = false;
+        throw new HttpException(responseBody['error']['message']);
+      }
+      this._signingUp = false;
+      this.notifyListeners();
+    } catch (error) {
+      throw error;
+    }
   }
 
   Future<void> _authenticate(
@@ -74,6 +93,7 @@ class Auth with ChangeNotifier {
   }
 
   Future<void> signup(String email, String password) async {
+    this._signingUp = true;
     return this._authenticate(email, password, 'signUp');
   }
 
@@ -107,6 +127,28 @@ class Auth with ChangeNotifier {
     final prefs = await SharedPreferences.getInstance();
     prefs.remove('userData');
     prefs.clear();
+  }
+
+  Future<void> deleteAccount() async {
+    try {
+      Future<Secret> secret = SecretLoader(secretPath: "secrets.json").load();
+      await secret.then((secret) async {
+        final url =
+            'https://identitytoolkit.googleapis.com/v1/accounts:delete?key=${secret.apiKey}';
+        final response = await http.post(url,
+            body: json.encode({
+              'idToken': this.token,
+            }));
+        final responseData = json.decode(response.body);
+        print(responseData);
+        if (responseData['error'] != null) {
+          throw HttpException(responseData['error']['message']);
+        }
+      });
+      this.logout();
+    } catch (error) {
+      throw error;
+    }
   }
 
   void _autoLogout() {

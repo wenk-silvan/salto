@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:salto/components/auth_actions.dart';
 
 class AuthScreen extends StatelessWidget {
+  static const route = '/auth';
+
   @override
   Widget build(BuildContext context) {
     final deviceSize = MediaQuery.of(context).size;

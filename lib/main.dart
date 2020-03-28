@@ -63,6 +63,7 @@ class MyApp extends StatelessWidget {
             UploadScreen.route: (ctx) => UploadScreen(),
             ProfileScreen.route: (ctx) => ProfileScreen(),
             SearchScreen.route: (ctx) => SearchScreen(),
+            AuthScreen.route: (ctx) => AuthScreen(),
           },
           onUnknownRoute: (settings) =>
               MaterialPageRoute(builder: (ctx) => TabsScreen()),

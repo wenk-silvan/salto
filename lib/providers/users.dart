@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
+import 'package:salto/models/http_exception.dart';
 
 import '../models/user.dart';
 import 'package:http/http.dart' as http;
@@ -14,20 +15,12 @@ class Users with ChangeNotifier {
   User signedInUser;
 
   Users(this.authToken, this._users) {
+    if (this.authToken == null) return;
     this.authString = '?auth=$authToken';
   }
 
   List<User> get users {
     return this._users;
-  }
-
-  Future<void> addUser(User user) async {
-    final body = User.toJson(user);
-    this._users.add(User.copy(user, user.id));
-    final response = await http.post('$url/users.json$authString', body: body);
-    this._users.removeWhere((u) => u.uuid == user.uuid);
-    this._users.add(User.copy(user, json.decode(response.body)['name']));
-    this.notifyListeners();
   }
 
   User findById(String userId) {
@@ -46,12 +39,13 @@ class Users with ChangeNotifier {
     this.notifyListeners();
   }
 
-  User login(String uuid) {
+  bool login(String uuid) {
     this.signedInUser = this
         ._users
-        .firstWhere((u) => u.uuid == uuid, orElse: () => User.initialize());
+        .firstWhere((u) => u.uuid == uuid, orElse: () => null);
+    if (this.signedInUser == null) return false;
     print('Logged in user: ${this.signedInUser.userName} - uuid: $uuid');
-    return this.signedInUser;
+    return true;
   }
 
   List<User> findByName(String text) {
@@ -86,12 +80,23 @@ class Users with ChangeNotifier {
           await this._updateFollowers(user.id, followers);
       final statusCodeFollows = await this._updateFollows(follows);
       if (statusCodeFollowers >= 400 || statusCodeFollows >= 400) {
-        print("Error while changing followers.");
+        throw new HttpException('Failed to toggle following status.');
       }
       this.notifyListeners();
     } catch (error) {
-      print(error);
-      this.notifyListeners();
+      throw error;
+    }
+  }
+
+  Future<void> removeSignedInUser() async {
+    try {
+      final response =
+      await http.delete('$url/users/${this.signedInUser.id}.json$authString');
+      if(response.statusCode >= 400) {
+        throw new HttpException('Failed to remove data from user.');
+      }
+    } catch (error) {
+      throw error;
     }
   }
 
@@ -102,6 +107,9 @@ class Users with ChangeNotifier {
     try {
       final response =
           await http.patch('$url/users/$userId.json$authString', body: body);
+      if (response.statusCode >= 400 || response.statusCode >= 400) {
+        throw new HttpException('Failed to toggle following status.');
+      }
       return response.statusCode;
     } catch (error) {
       throw error;

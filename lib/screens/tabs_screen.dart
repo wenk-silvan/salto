@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:salto/components/base_app_bar.dart';
 import 'package:salto/providers/auth.dart';
 import 'package:salto/providers/users.dart';
+import 'package:salto/screens/auth_screen.dart';
 import 'package:salto/screens/feed_screen.dart';
 
 import '../models/user.dart';
@@ -16,6 +17,7 @@ class _TabsScreenState extends State<TabsScreen> {
   Users _userData;
   List<Map<String, Object>> _pages;
   int _selectedPageIndex = 0;
+  bool isInit = true;
 
   BottomNavigationBar _bottomNavBar() {
     return BottomNavigationBar(
@@ -43,10 +45,16 @@ class _TabsScreenState extends State<TabsScreen> {
   }
 
   Future<void> _initialize(BuildContext ctx) async {
+    this.isInit = false;
     this._userData = Provider.of<Users>(ctx, listen: false);
-    await this._userData.getUsers();
-    final uuid = Provider.of<Auth>(ctx, listen: false).userId;
-    this._userData.login(uuid);
+    final authData = Provider.of<Auth>(ctx, listen: false);
+    try {
+      await this._userData.getUsers();
+      var didLogIn = this._userData.login(authData.userId);
+      if(!didLogIn) authData.logout();
+    } catch(error) {
+      throw error;
+    }
   }
 
   void _selectPage(int index) {
@@ -64,7 +72,7 @@ class _TabsScreenState extends State<TabsScreen> {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
-      future: this._initialize(context),
+      future: this.isInit ? this._initialize(context) : null,
       builder: (ctx, snapshot) {
         this._pages = [
           {'page': FeedScreen(isFavorites: false)},
