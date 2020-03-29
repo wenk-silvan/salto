@@ -21,10 +21,14 @@ class _SearchScreenState extends State<SearchScreen> {
   List<ContentItem> content = [];
   Timer _timer;
   bool _userTabActivated = true;
+  bool _isLoading = false;
   final TextEditingController _filter = new TextEditingController();
 
   _onChangedInput() {
     if (this._timer == null) {
+      setState(() {
+        this._isLoading = true;
+      });
       this._timer = Timer(Duration(milliseconds: 500), _updateFilter);
     }
   }
@@ -46,6 +50,7 @@ class _SearchScreenState extends State<SearchScreen> {
               .findByTitle(_filter.text);
         }
       }
+      this._isLoading = false;
     });
     this._timer = null;
   }
@@ -59,9 +64,22 @@ class _SearchScreenState extends State<SearchScreen> {
           title: TextField(
             autofocus: true,
             controller: _filter,
+            cursorColor: Colors.white,
+            style: TextStyle(color: Colors.white),
             onChanged: (_) => this._onChangedInput(),
             decoration: new InputDecoration(
               hintText: 'Search...',
+              hintStyle: TextStyle(color: Colors.white54),
+              suffixIcon: this._filter.text.isEmpty ? null : IconButton(
+                icon: Icon(Icons.clear),
+                color: Colors.white,
+                onPressed: () {
+                  setState(() {
+                    this._filter.clear();
+                    this._updateFilter();
+                  });
+                },
+              )
             ),
           ),
           bottom: TabBar(
@@ -75,18 +93,30 @@ class _SearchScreenState extends State<SearchScreen> {
             ],
           ),
         ),
-        body: TabBarView(
-          children: <Widget>[
-            ListView.builder(
-              itemBuilder: (_, i) => SearchUserResult(this.users[i]),
-              itemCount: this.users.length,
-            ),
-            ListView.builder(
-              itemBuilder: (_, i) => SearchPostResult(this.content[i]),
-              itemCount: this.content.length,
-            ),
-          ],
-        ),
+        body: this._isLoading
+            ? Center(child: CircularProgressIndicator())
+            : TabBarView(
+                children: <Widget>[
+                  this.users.length < 1
+                      ? Center(
+                          child: Text(
+                              '${_filter.text.isEmpty ? 'Type to search users.' : 'No users where found.'}'))
+                      : ListView.builder(
+                          itemBuilder: (_, i) =>
+                              SearchUserResult(this.users[i]),
+                          itemCount: this.users.length,
+                        ),
+                  this.content.length < 1
+                      ? Center(
+                          child: Text(
+                              '${_filter.text.isEmpty ? 'Type to search posts.' : 'No posts where found.'}'))
+                      : ListView.builder(
+                          itemBuilder: (_, i) =>
+                              SearchPostResult(this.content[i]),
+                          itemCount: this.content.length,
+                        ),
+                ],
+              ),
       ),
     );
   }
