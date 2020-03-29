@@ -5,7 +5,7 @@ import 'package:salto/models/user.dart';
 import 'package:salto/providers/auth.dart';
 import 'package:salto/providers/users.dart';
 
-enum AuthMode { Signup, Login }
+enum AuthMode { Signup, Login, Reset }
 
 class AuthActions extends StatefulWidget {
   @override
@@ -75,12 +75,22 @@ class _AuthActionsState extends State<AuthActions> {
           _authData['email'],
           _authData['password'],
         );
-      } else {
+      }
+      else if (_authMode == AuthMode.Signup) {
         await Provider.of<Auth>(context, listen: false).signup(
           _authData['email'],
           _authData['password'],
         );
         this._addNewUser();
+      }
+      else {
+        await Provider.of<Auth>(context, listen: false).resetPassword(
+          _authData['email']
+        );
+        Scaffold.of(context).showSnackBar(SnackBar(
+          content: Text('Password reset email sent.')
+        ));
+        this._switchAuthMode();
       }
     } on HttpException catch (error) {
       var errorMessage = 'Auhentication failed';
@@ -187,19 +197,20 @@ class _AuthActionsState extends State<AuthActions> {
                   _authData['email'] = value;
                 },
               ),
-              TextFormField(
-                decoration: InputDecoration(labelText: 'Password'),
-                obscureText: true,
-                controller: _passwordController,
-                validator: (value) {
-                  if (value.isEmpty || value.length < 5) {
-                    return 'Password is too short!';
-                  }
-                },
-                onSaved: (value) {
-                  _authData['password'] = value;
-                },
-              ),
+              if (_authMode == AuthMode.Login || _authMode == AuthMode.Signup)
+                TextFormField(
+                  decoration: InputDecoration(labelText: 'Password'),
+                  obscureText: true,
+                  controller: _passwordController,
+                  validator: (value) {
+                    if (value.isEmpty || value.length < 5) {
+                      return 'Password is too short!';
+                    }
+                  },
+                  onSaved: (value) {
+                    _authData['password'] = value;
+                  },
+                ),
               if (_authMode == AuthMode.Signup)
                 TextFormField(
                   enabled: _authMode == AuthMode.Signup,
@@ -221,7 +232,7 @@ class _AuthActionsState extends State<AuthActions> {
               else
                 RaisedButton(
                   child:
-                  Text(_authMode == AuthMode.Login ? 'LOGIN' : 'SIGN UP'),
+                  Text(_authMode == AuthMode.Login ? 'LOGIN' : _authMode == AuthMode.Signup ? 'SIGN UP' : 'Reset Password'),
                   onPressed: _submit,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(30),
@@ -238,6 +249,18 @@ class _AuthActionsState extends State<AuthActions> {
                 padding: EdgeInsets.symmetric(horizontal: 30.0, vertical: 4),
                 materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 textColor: Theme.of(context).primaryColor,
+              ),
+              if (_authMode == AuthMode.Login)
+                FlatButton(
+                child: Text(
+                    'Reset Password'),
+                onPressed: () {
+                  setState(() {
+                    this._authMode = AuthMode.Reset;
+                  });
+                },
+                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                textColor: Colors.grey,
               ),
             ],
           ),

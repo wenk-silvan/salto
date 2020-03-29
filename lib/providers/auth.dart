@@ -92,6 +92,29 @@ class Auth with ChangeNotifier {
     return this._authenticate(email, password, 'signInWithPassword');
   }
 
+  Future<void> resetPassword(String email) async {
+    try {
+      Future<Secret> secret = SecretLoader(secretPath: "secrets.json").load();
+      await secret.then((secret) async {
+        final url =
+            'https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key=${secret.apiKey}';
+        final response = await http.post(url,
+            body: json.encode({
+              'email': email,
+              'requestType': 'PASSWORD_RESET',
+            }));
+        final responseData = json.decode(response.body);
+        print(responseData);
+        if (responseData['error'] != null) {
+          throw HttpException(responseData['error']['message']);
+        }
+
+      });
+    } catch (error) {
+      throw error;
+    }
+  }
+
   Future<void> signup(String email, String password) async {
     this._signingUp = true;
     return this._authenticate(email, password, 'signUp');
