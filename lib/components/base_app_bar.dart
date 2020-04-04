@@ -56,9 +56,7 @@ class BaseAppBar extends StatelessWidget implements PreferredSizeWidget {
             icon: Icon(Icons.settings),
             onPressed: () =>
                 Navigator.of(context).pushNamed(SettingsScreen.route)),
-        CircleAvatarButton(
-            user: signedInUser,
-            backgroundColor: Theme.of(context).primaryColor),
+        CircleAvatarButton(signedInUser, Theme.of(context).primaryColor),
       ],
     );
   }

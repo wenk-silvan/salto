@@ -19,7 +19,7 @@ class _CommentWidgetState extends State<CommentWidget> {
     var currentTextData = StringBuffer();
     var textSpans = <TextSpan>[
       TextSpan(
-          text: '${user.userName}',
+          text: '@${user.userName}',
           style: TextStyle(fontWeight: FontWeight.bold)),
     ];
     currentTextData.write(' ');

@@ -4,13 +4,13 @@ import 'package:salto/providers/auth.dart';
 import 'package:salto/providers/content-items.dart';
 import 'package:salto/providers/users.dart';
 import 'package:salto/screens/auth_screen.dart';
-import 'package:salto/screens/post_screen.dart';
 import 'package:salto/screens/profile_screen.dart';
 import 'package:salto/screens/search_screen.dart';
 import 'package:salto/screens/settings_screen.dart';
 import 'package:salto/screens/splash_screen.dart';
 import 'package:salto/screens/tabs_screen.dart';
 import 'package:salto/screens/upload_screen.dart';
+import 'package:salto/screens/post_screen.dart';
 
 void main() => runApp(MyApp());
 
@@ -58,12 +58,12 @@ class MyApp extends StatelessWidget {
                           : AuthScreen(),
                 ),
           routes: {
-            PostScreen.route: (ctx) => PostScreen(),
             SettingsScreen.route: (ctx) => SettingsScreen(),
             UploadScreen.route: (ctx) => UploadScreen(),
             ProfileScreen.route: (ctx) => ProfileScreen(),
             SearchScreen.route: (ctx) => SearchScreen(),
             AuthScreen.route: (ctx) => AuthScreen(),
+            PostScreen.route: (ctx) => PostScreen(),
           },
           onUnknownRoute: (settings) =>
               MaterialPageRoute(builder: (ctx) => TabsScreen()),

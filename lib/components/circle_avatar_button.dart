@@ -6,8 +6,9 @@ import 'package:salto/screens/profile_screen.dart';
 class CircleAvatarButton extends StatelessWidget {
   User user;
   Color backgroundColor;
+  bool replacement;
 
-  CircleAvatarButton({this.user, this.backgroundColor});
+  CircleAvatarButton(this.user, this.backgroundColor, [this.replacement = false]);
 
   @override
   Widget build(BuildContext context) {
@@ -27,12 +28,20 @@ class CircleAvatarButton extends StatelessWidget {
         ),
       ),
       onTap: () {
-        Navigator.of(context).pushNamed(
-          ProfileScreen.route,
-          arguments: {
-            'userId': this.user.id,
-          },
-        );
+        if(this.replacement)
+          Navigator.of(context).pushReplacementNamed(
+            ProfileScreen.route,
+            arguments: {
+              'userId': this.user.id,
+            },
+          );
+        else
+          Navigator.of(context).pushNamed(
+            ProfileScreen.route,
+            arguments: {
+              'userId': this.user.id,
+            },
+          );
       },
     );
   }

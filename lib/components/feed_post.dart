@@ -8,6 +8,7 @@ import 'package:salto/providers/content-items.dart';
 import 'package:salto/providers/users.dart';
 import 'package:salto/screens/profile_screen.dart';
 import 'package:salto/components/comment_widget.dart';
+import 'package:salto/screens/post_screen.dart';
 
 class FeedPost extends StatefulWidget {
   final ContentItem post;
@@ -34,7 +35,8 @@ class _FeedPostState extends State<FeedPost> {
 
   void _setIsFavorite() {
     setState(() {
-      this._isFavorite = widget.post.likes.any((l) => l == this._signedInUser.id);
+      this._isFavorite =
+          widget.post.likes.any((l) => l == this._signedInUser.id);
     });
   }
 
@@ -51,7 +53,7 @@ class _FeedPostState extends State<FeedPost> {
             Row(
               children: <Widget>[
                 //Avatar
-                CircleAvatarButton(user: user, backgroundColor: Colors.white),
+                CircleAvatarButton(user, Colors.white),
                 Text(
                   widget.post.title,
                   style: TextStyle(fontWeight: FontWeight.bold),
@@ -60,7 +62,13 @@ class _FeedPostState extends State<FeedPost> {
             ),
             Container(
               width: double.infinity,
-              child: Image.network(widget.post.mediaUrl, fit: BoxFit.cover),
+              child: InkWell(
+                onTap: () =>
+                    Navigator.pushNamed(context, PostScreen.route, arguments: {
+                  'contentItemId': widget.post.id,
+                }),
+                child: Image.network(widget.post.mediaUrl, fit: BoxFit.cover),
+              ),
             ),
             Row(
               mainAxisAlignment: MainAxisAlignment.start,
@@ -68,8 +76,9 @@ class _FeedPostState extends State<FeedPost> {
                 Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: IconButton(
-                    icon: Icon(
-                        this._isFavorite ? Icons.favorite : Icons.favorite_border),
+                    icon: Icon(this._isFavorite
+                        ? Icons.favorite
+                        : Icons.favorite_border),
                     onPressed: () {
                       this._toggleFavorite().then((_) {
                         this._setIsFavorite();
@@ -79,7 +88,14 @@ class _FeedPostState extends State<FeedPost> {
                 ),
                 Padding(
                   padding: const EdgeInsets.all(8.0),
-                  child: Icon(Icons.comment),
+                  child: IconButton(
+                    onPressed: () => Navigator.pushNamed(
+                        context, PostScreen.route,
+                        arguments: {
+                          'contentItemId': widget.post.id,
+                        }),
+                    icon: Icon(Icons.comment),
+                  ),
                 )
               ],
             ),
