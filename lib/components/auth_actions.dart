@@ -85,7 +85,7 @@ class _AuthActionsState extends State<AuthActions> {
       }
       else {
         await Provider.of<Auth>(context, listen: false).resetPassword(
-          _authData['email']
+          _authData['email'].trim()
         );
         Scaffold.of(context).showSnackBar(SnackBar(
           content: Text('Password reset email sent.')
@@ -146,10 +146,12 @@ class _AuthActionsState extends State<AuthActions> {
                   controller: this._userNameController,
                   validator: _authMode == AuthMode.Signup
                       ? (value) {
-                    if (value.length < 3) {
+                    if (value.length < 3)
                       return 'User name is to short.';
-                    } else if (value.length > 20)
+                    else if (value.length > 20)
                       return 'User name is to long.';
+                    else if (value.contains(' '))
+                      return 'Cannot contain whitespaces.';
                   }
                       : null,
                 ),
@@ -189,9 +191,10 @@ class _AuthActionsState extends State<AuthActions> {
                 decoration: InputDecoration(labelText: 'E-Mail'),
                 keyboardType: TextInputType.emailAddress,
                 validator: (value) {
-                  if (value.isEmpty || !value.contains('@')) {
+                  if (value.isEmpty || !value.contains('@'))
                     return 'Invalid email!';
-                  }
+                  else if (value.contains(' '))
+                    return 'Cannot contain whitespaces.';
                 },
                 onSaved: (value) {
                   _authData['email'] = value;
@@ -203,9 +206,10 @@ class _AuthActionsState extends State<AuthActions> {
                   obscureText: true,
                   controller: _passwordController,
                   validator: (value) {
-                    if (value.isEmpty || value.length < 5) {
+                    if (value.isEmpty || value.length < 5)
                       return 'Password is too short!';
-                    }
+                    else if (value.contains(' '))
+                      return 'Cannot contain whitespaces.';
                   },
                   onSaved: (value) {
                     _authData['password'] = value;
