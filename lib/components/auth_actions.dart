@@ -105,10 +105,10 @@ class _AuthActionsState extends State<AuthActions> {
       } else if (error.toString().contains('INVALID_PASSWORD')) {
         errorMessage = 'Invalid password.';
       }
-      this._showErrorDialog(errorMessage);
+      HttpException.showErrorDialog(errorMessage, context);
     } catch (error) {
       var errorMessage = 'Could not authenticate you. Please try again later.';
-      this._showErrorDialog(errorMessage);
+      HttpException.showErrorDialog(errorMessage, context);
     }
 
     setState(() {

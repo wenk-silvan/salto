@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:salto/providers/auth.dart';
+import 'package:salto/providers/comments.dart';
 import 'package:salto/providers/content-items.dart';
 import 'package:salto/providers/users.dart';
 import 'package:salto/screens/auth_screen.dart';
@@ -35,6 +36,13 @@ class MyApp extends StatelessWidget {
             previousUsers == null ? [] : previousUsers.users,
           ),
         ),
+        ChangeNotifierProxyProvider<Auth, Comments>(
+          create: (BuildContext ctx) => null,
+          update: (ctx, auth, previousComments) => Comments(
+            auth.token,
+            previousComments == null ? [] : previousComments.items,
+          ),
+        )
       ],
       child: Consumer<Auth>(
         builder: (ctx, auth, _) => MaterialApp(

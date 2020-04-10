@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'user.dart';
 
@@ -13,4 +15,30 @@ class Comment {
     @required this.userId,
     @required this.timestamp,
   });
+
+  static Comment copy(Comment comment, id) {
+    return Comment(
+      id: id,
+      text: comment.text,
+      timestamp: comment.timestamp,
+      userId: comment.userId,
+    );
+  }
+
+  static Comment fromJson(id, data) {
+    return Comment(
+      id: id,
+      text: data['text'],
+      timestamp: DateTime.parse(data['timestamp']),
+      userId: data['userId'],
+    );
+  }
+
+  static String toJson(Comment comment) {
+    return json.encode({
+      'text': comment.text,
+      'timestamp': comment.timestamp.toIso8601String(),
+      'userId': comment.userId,
+    });
+  }
 }

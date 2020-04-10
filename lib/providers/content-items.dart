@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
-import 'package:salto/models/comment.dart';
 import 'package:salto/models/user.dart';
 
 import '../models/content-item.dart';
@@ -32,10 +31,6 @@ class ContentItems with ChangeNotifier {
         await http.post('$url/content.json$authString', body: body);
     this.items.add(ContentItem.copy(item, json.decode(response.body)['name']));
     this.notifyListeners();
-  }
-
-  Future<void> addComment(ContentItem item, String text) {
-
   }
 
   Future<void> addToFavorites(ContentItem post, String userId) async {
