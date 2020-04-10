@@ -33,6 +33,14 @@ class ContentItems with ChangeNotifier {
     this.notifyListeners();
   }
 
+  Future<void> toggleFavorites(ContentItem post, userId) async {
+    if (ContentItem.isFavorite(post, userId)) {
+      await this.removeFromFavorites(post, userId);
+    } else {
+      await this.addToFavorites(post, userId);
+    }
+  }
+
   Future<void> addToFavorites(ContentItem post, String userId) async {
     post.likes.add(userId);
     try {
@@ -41,11 +49,9 @@ class ContentItems with ChangeNotifier {
         print("Error while adding like.");
         post.likes.remove(userId);
       }
-      this.notifyListeners();
     } catch (error) {
       print(error);
       post.likes.remove(userId);
-      this.notifyListeners();
     }
   }
 
@@ -96,11 +102,9 @@ class ContentItems with ChangeNotifier {
         print("Error while removing like.");
         post.likes.add(userId);
       }
-      this.notifyListeners();
     } catch (error) {
       print(error);
       post.likes.add(userId);
-      this.notifyListeners();
     }
   }
 

@@ -21,6 +21,7 @@ class Comments with ChangeNotifier {
 
   Future<void> getComments(String contentItemId) async {
     try {
+      if (this.authToken == null) return;
       final response =
       await http.get('$url/comments/$contentItemId.json$authString');
       final List<Comment> loadedComments = [];
@@ -29,13 +30,14 @@ class Comments with ChangeNotifier {
         this._items = [];
         return;
       }
-      extracted
-          .forEach((id, data) => loadedComments.add(Comment.fromJson(id, data)));
-      this._items = loadedComments.toList();
 
       if (response.statusCode >= 400 || response.statusCode >= 400) {
         throw new HttpException('Failed to post comment.');
       }
+
+      extracted
+          .forEach((id, data) => loadedComments.add(Comment.fromJson(id, data)));
+      this._items = loadedComments.toList();
       print("Loaded comments for post with id: $contentItemId.");
       //this.notifyListeners();
     } catch (error) {

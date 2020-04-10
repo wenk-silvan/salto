@@ -64,6 +64,10 @@ class ContentItem {
     );
   }
 
+  static isFavorite(ContentItem post, userId) {
+    return post.likes.any((l) => l == userId);
+  }
+
   static String toJson(ContentItem item) {
     final timestamp = DateTime.now();
     return json.encode({

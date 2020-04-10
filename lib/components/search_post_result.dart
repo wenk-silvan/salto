@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:salto/models/content-item.dart';
 import 'package:salto/providers/users.dart';
+import 'package:salto/screens/post_screen.dart';
 
 import 'circle_avatar_button.dart';
 
@@ -17,7 +18,9 @@ class SearchPostResult extends StatelessWidget {
 
     return Card(
       child: InkWell(
-        onTap: () {}, //TODO: Navigate to Post Screen
+        onTap: () => Navigator.pushNamed(context, PostScreen.route, arguments: {
+          'contentItemId': this.post.id,
+        }),
         child: Row(
           children: <Widget>[
             Padding(
@@ -61,7 +64,11 @@ class SearchPostResult extends StatelessWidget {
                         SizedBox(width: 10),
                         Row(
                           children: <Widget>[
-                            Icon(Icons.favorite, size: 20),
+                            Icon(
+                              Icons.favorite,
+                              size: 20,
+                              color: Colors.red,
+                            ),
                             SizedBox(width: 2),
                             Text(
                               this.post.likes.length.toString(),

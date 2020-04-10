@@ -11,7 +11,6 @@ import 'package:salto/models/user.dart';
 import 'package:salto/providers/comments.dart';
 import 'package:salto/providers/content-items.dart';
 import 'package:salto/providers/users.dart';
-import 'package:salto/screens/splash_screen.dart';
 import 'package:video_player/video_player.dart';
 
 class PostScreen extends StatefulWidget {
@@ -24,10 +23,13 @@ class PostScreen extends StatefulWidget {
 }
 
 class _PostScreenState extends State<PostScreen> {
+  bool _isInit = true;
   final TextEditingController _input = new TextEditingController();
   VideoPlayerController _controller;
   Future<void> _initializeVideoPlayerFuture;
   User _signedInUser;
+  User _user;
+  ContentItem _cachedPost;
   ContentItem _post;
   bool _isFavorite;
   List<Comment> _comments;
@@ -41,7 +43,6 @@ class _PostScreenState extends State<PostScreen> {
         'assets/videos/SampleVideo_1280x720_1mb.mp4');
     _controller.setLooping(true);
     _initializeVideoPlayerFuture = _controller.initialize();
-
     super.initState();
   }
 
@@ -51,14 +52,26 @@ class _PostScreenState extends State<PostScreen> {
     super.dispose();
   }
 
-  Future<void> _toggleFavorite() async {
-    if (!this._isFavorite) {
-      await Provider.of<ContentItems>(context, listen: false)
-          .addToFavorites(this._post, this._signedInUser.id);
-    } else {
-      await Provider.of<ContentItems>(context, listen: false)
-          .removeFromFavorites(this._post, this._signedInUser.id);
+  void _initialize() {
+    final args = ModalRoute.of(context).settings.arguments as dynamic;
+    this._post = Provider.of<ContentItems>(context, listen: false).getContentById(args['contentItemId']);
+    this._user = Provider.of<Users>(context, listen: false).findById(this._post.userId);
+    this._signedInUser = Provider.of<Users>(context, listen: false).signedInUser;
+    if (this._cachedPost != null && this._cachedPost.id != this._post.id) {
+      this._isInit = true;
     }
+    if (this._isInit) {
+      this._isFavorite = ContentItem.isFavorite(this._post, this._signedInUser.id);
+      this._cachedPost = this._post;
+    }
+  }
+
+  Future<void> _toggleFavorite() async {
+    await Provider.of<ContentItems>(context)
+        .toggleFavorites(this._post, this._signedInUser.id);
+    setState(() {
+      this._isFavorite = !this._isFavorite;
+    });
   }
 
   void _toggleVideoState() {
@@ -68,14 +81,6 @@ class _PostScreenState extends State<PostScreen> {
       } else {
         _controller.play();
       }
-    });
-  }
-
-  void _setIsFavorite() {
-    if (this._signedInUser == null || this._post == null) return;
-    setState(() {
-      this._isFavorite =
-          this._post.likes.any((l) => l == this._signedInUser.id);
     });
   }
 
@@ -97,14 +102,7 @@ class _PostScreenState extends State<PostScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final args = ModalRoute.of(context).settings.arguments as dynamic;
-    final _commentData = Provider.of<Comments>(context, listen: false);
-    final _userData = Provider.of<Users>(context, listen: false);
-    this._post = Provider.of<ContentItems>(context, listen: false)
-        .getContentById(args['contentItemId']);
-    this._signedInUser = _userData.signedInUser;
-    final _user = _userData.findById(this._post.userId);
-    this._setIsFavorite();
+    this._initialize();
     return Scaffold(
       appBar: AppBar(
         title: Text(this._post.title),
@@ -156,14 +154,11 @@ class _PostScreenState extends State<PostScreen> {
                 IconButton(
                   iconSize: 30,
                   color: Colors.red,
-                  icon: Icon(this._isFavorite
-                      ? Icons.favorite
-                      : Icons.favorite_border),
-                  onPressed: () {
-                    this._toggleFavorite().then((_) {
-                      this._setIsFavorite();
-                    });
-                  },
+                  icon: Icon(
+                      this._isFavorite
+                          ? Icons.favorite
+                          : Icons.favorite_border),
+                  onPressed: () => this._toggleFavorite(),
                 ),
                 Padding(
                   padding: const EdgeInsets.all(8.0),
@@ -187,13 +182,14 @@ class _PostScreenState extends State<PostScreen> {
                 child: Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: FutureBuilder(
-                        future: _commentData.getComments(this._post.id),
+                        future: this._isInit ? Provider.of<Comments>(context, listen: false).getComments(this._post.id) : null,
                         builder: (ctx, authResultSnapshot) {
+                          this._isInit = false;
                           if (authResultSnapshot.connectionState ==
                               ConnectionState.waiting) {
                             return Center(child: CircularProgressIndicator());
                           } else {
-                            this._comments = _commentData.items;
+                            this._comments = Provider.of<Comments>(context, listen: false).items;
                             return Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: <Widget>[

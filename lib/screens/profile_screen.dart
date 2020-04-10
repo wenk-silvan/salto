@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:salto/components/chip_icon.dart';
 import 'package:salto/providers/auth.dart';
 import 'package:salto/providers/content-items.dart';
 import 'package:salto/providers/users.dart';
@@ -8,23 +9,6 @@ class ProfileScreen extends StatelessWidget {
   static const route = '/profile';
   static const _placeholderAvatarUrl =
       'https://cdn.pixabay.com/photo/2016/08/08/09/17/avatar-1577909_960_720.png';
-
-  Widget _buildChip(BuildContext ctx, String text) => Chip(
-        label: Row(
-          children: <Widget>[
-            Icon(
-              Icons.home,
-              color: Theme.of(ctx).textTheme.title.color,
-            ),
-            SizedBox(
-              width: 5,
-            ),
-            Text(text,
-                style: TextStyle(color: Theme.of(ctx).textTheme.title.color)),
-          ],
-        ),
-        backgroundColor: Theme.of(ctx).primaryColor,
-      );
 
   void _logout(BuildContext ctx) {
     Provider.of<Auth>(ctx).logout();
@@ -86,9 +70,12 @@ class ProfileScreen extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: <Widget>[
-                this._buildChip(context,
-                    '${user.followers.length} ${user.followers.length == 1 ? 'Follower' : 'Followers'}'),
-                this._buildChip(context, user.locality),
+                ChipIcon(
+                    Icons.star,
+                    '${user.followers.length} ${user.followers.length == 1 ? 'Follower' : 'Followers'}',
+                    context),
+                ChipIcon(Icons.home,
+                    user.locality.isEmpty ? 'Unknown' : user.locality, context),
               ],
             ),
           ),
