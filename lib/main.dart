@@ -1,8 +1,11 @@
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:salto/providers/auth.dart';
 import 'package:salto/providers/comments.dart';
 import 'package:salto/providers/content-items.dart';
+import 'package:salto/providers/media.dart';
 import 'package:salto/providers/users.dart';
 import 'package:salto/screens/auth_screen.dart';
 import 'package:salto/screens/profile_screen.dart';
@@ -12,10 +15,33 @@ import 'package:salto/screens/splash_screen.dart';
 import 'package:salto/screens/tabs_screen.dart';
 import 'package:salto/screens/upload_screen.dart';
 import 'package:salto/screens/post_screen.dart';
+import 'package:salto/secret.dart';
+import 'package:salto/secret_loader.dart';
 
-void main() => runApp(MyApp());
+//void main() => runApp(MyApp());
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  Future<Secret> secret = SecretLoader(secretPath: "secrets.json").load();
+  await secret.then((secret) async {
+    final FirebaseApp app = await FirebaseApp.configure(
+      name: 'test',
+      options: FirebaseOptions(
+        googleAppID: secret.googleAppID,
+        apiKey: secret.apiKey,
+        projectID: secret.projectID,
+      ),
+    );
+    final FirebaseStorage storage = FirebaseStorage(
+        app: app, storageBucket: secret.storageBucket);
+    runApp(MyApp(storage: storage));
+  });
+}
 
 class MyApp extends StatelessWidget {
+  final FirebaseStorage storage;
+  MyApp({this.storage});
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
@@ -42,6 +68,13 @@ class MyApp extends StatelessWidget {
             auth.token,
             previousComments == null ? [] : previousComments.items,
           ),
+        ),
+        ChangeNotifierProxyProvider<Auth, Media>(
+          create: (BuildContext ctx) => null,
+          update: (ctx, auth, previousMedia) => Media(
+            auth.token,
+            previousMedia == null ? [] : previousMedia.media,
+          ),
         )
       ],
       child: Consumer<Auth>(
@@ -67,10 +100,10 @@ class MyApp extends StatelessWidget {
                 ),
           routes: {
             SettingsScreen.route: (ctx) => SettingsScreen(),
-            UploadScreen.route: (ctx) => UploadScreen(),
+            UploadScreen.route: (ctx) => UploadScreen(this.storage),
             ProfileScreen.route: (ctx) => ProfileScreen(),
             SearchScreen.route: (ctx) => SearchScreen(),
-            AuthScreen.route: (ctx) => AuthScreen(),
+            AuthScreen.route: (ctx, ) => AuthScreen(),
             PostScreen.route: (ctx) => PostScreen(),
           },
           onUnknownRoute: (settings) =>

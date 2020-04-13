@@ -1,8 +1,10 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:salto/components/circle_avatar_button.dart';
 import 'package:salto/components/comment_widget.dart';
+import 'package:salto/components/file_video_player.dart';
 import 'package:salto/components/timestamp.dart';
 import 'package:salto/models/comment.dart';
 import 'package:salto/models/content-item.dart';
@@ -15,6 +17,7 @@ import 'package:video_player/video_player.dart';
 
 class PostScreen extends StatefulWidget {
   static const route = '/player';
+  final storageUrl = "salto-7fab8.appspot.com";
 
   PostScreen({Key key}) : super(key: key);
 
@@ -25,8 +28,6 @@ class PostScreen extends StatefulWidget {
 class _PostScreenState extends State<PostScreen> {
   bool _isInit = true;
   final TextEditingController _input = new TextEditingController();
-  VideoPlayerController _controller;
-  Future<void> _initializeVideoPlayerFuture;
   User _signedInUser;
   User _user;
   ContentItem _cachedPost;
@@ -34,27 +35,10 @@ class _PostScreenState extends State<PostScreen> {
   bool _isFavorite;
   List<Comment> _comments;
 
-  @override
-  void initState() {
-    /*_controller = VideoPlayerController.network(
-      'https://www.youtube.com/embed/OyWfsDTnij8',
-    );*/
-    _controller = VideoPlayerController.asset(
-        'assets/videos/SampleVideo_1280x720_1mb.mp4');
-    _controller.setLooping(true);
-    _initializeVideoPlayerFuture = _controller.initialize();
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
   void _initialize() {
     final args = ModalRoute.of(context).settings.arguments as dynamic;
-    this._post = Provider.of<ContentItems>(context, listen: false).getContentById(args['contentItemId']);
+    final postId = args['contentItemId'];
+    this._post = Provider.of<ContentItems>(context, listen: false).getContentById(postId);
     this._user = Provider.of<Users>(context, listen: false).findById(this._post.userId);
     this._signedInUser = Provider.of<Users>(context, listen: false).signedInUser;
     if (this._cachedPost != null && this._cachedPost.id != this._post.id) {
@@ -66,27 +50,10 @@ class _PostScreenState extends State<PostScreen> {
     }
   }
 
-  Future<void> _toggleFavorite() async {
-    await Provider.of<ContentItems>(context)
-        .toggleFavorites(this._post, this._signedInUser.id);
-    setState(() {
-      this._isFavorite = !this._isFavorite;
-    });
-  }
-
-  void _toggleVideoState() {
-    setState(() {
-      if (_controller.value.isPlaying) {
-        _controller.pause();
-      } else {
-        _controller.play();
-      }
-    });
-  }
-
   void _submitComment() async {
     if (this._input.text.isEmpty) return;
     try {
+      this._isInit = true;
       await Provider.of<Comments>(context).addComment(
           Comment(
             userId: this._signedInUser.id,
@@ -98,6 +65,14 @@ class _PostScreenState extends State<PostScreen> {
     } on HttpException catch (error) {
       HttpException.showErrorDialog(error.toString(), context);
     }
+  }
+
+  Future<void> _toggleFavorite() async {
+    await Provider.of<ContentItems>(context)
+        .toggleFavorites(this._post, this._signedInUser.id);
+    setState(() {
+      this._isFavorite = !this._isFavorite;
+    });
   }
 
   @override
@@ -114,40 +89,7 @@ class _PostScreenState extends State<PostScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            Container(
-              width: double.infinity,
-              child: FutureBuilder(
-                future: _initializeVideoPlayerFuture,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.done) {
-                    return AspectRatio(
-                      aspectRatio: _controller.value.aspectRatio,
-                      child: GestureDetector(
-                        onTap: () => this._toggleVideoState(),
-                        child: Stack(
-                          children: <Widget>[
-                            VideoPlayer(_controller),
-                            Center(
-                              child: FloatingActionButton(
-                                onPressed: () => this._toggleVideoState(),
-                                backgroundColor: Colors.white38,
-                                child: Icon(
-                                  _controller.value.isPlaying
-                                      ? Icons.pause
-                                      : Icons.play_arrow,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  } else {
-                    return Center(child: CircularProgressIndicator());
-                  }
-                },
-              ),
-            ),
+            FileVideoPlayer(true, File(''), this._post.mediaUrl),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: <Widget>[

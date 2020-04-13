@@ -1,8 +1,11 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:salto/components/chip_icon.dart';
 import 'package:salto/components/circle_avatar_button.dart';
+import 'package:salto/components/file_video_player.dart';
 import 'package:salto/components/timestamp.dart';
 import 'package:salto/models/comment.dart';
 import 'package:salto/models/content-item.dart';
@@ -40,7 +43,8 @@ class _FeedPostState extends State<FeedPost> {
     this._signedInUser = Provider.of<Users>(context).signedInUser;
     final user = Provider.of<Users>(context).findById(widget.post.userId);
     if (this._isInit) {
-      this._isFavorite = ContentItem.isFavorite(widget.post, this._signedInUser.id);
+      this._isFavorite =
+          ContentItem.isFavorite(widget.post, this._signedInUser.id);
     }
     return Center(
       child: Card(
@@ -63,7 +67,8 @@ class _FeedPostState extends State<FeedPost> {
                     Navigator.pushNamed(context, PostScreen.route, arguments: {
                   'contentItemId': widget.post.id,
                 }),
-                child: Image.network(widget.post.mediaUrl, fit: BoxFit.cover),
+                //child: Image.network(widget.post.mediaUrl, fit: BoxFit.cover),
+                child: FileVideoPlayer(false, File(''), widget.post.mediaUrl),
               ),
             ),
             Padding(
@@ -82,7 +87,8 @@ class _FeedPostState extends State<FeedPost> {
                   IconButton(
                     iconSize: 30,
                     icon: Icon(Icons.comment),
-                    onPressed: () => Navigator.pushNamed(context, PostScreen.route,
+                    onPressed: () => Navigator.pushNamed(
+                        context, PostScreen.route,
                         arguments: {
                           'contentItemId': widget.post.id,
                         }),
@@ -91,7 +97,8 @@ class _FeedPostState extends State<FeedPost> {
               ),
             ),
             Padding(
-              padding: EdgeInsets.only(top: 0, bottom: 8.0, left: 8.0, right: 8.0),
+              padding:
+                  EdgeInsets.only(top: 0, bottom: 8.0, left: 8.0, right: 8.0),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: <Widget>[

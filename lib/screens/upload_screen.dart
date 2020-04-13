@@ -1,24 +1,35 @@
+import 'dart:io';
+
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:salto/components/file_video_player.dart';
 import 'package:salto/providers/content-items.dart';
 import 'package:salto/providers/users.dart';
+import 'package:uuid/uuid.dart';
+import 'package:video_player/video_player.dart';
 
 import '../models/content-item.dart';
 
+const String kTestString = 'Hello world!';
+
 class UploadScreen extends StatefulWidget {
   static const route = '/upload';
+  final FirebaseStorage storage;
+
+  UploadScreen(this.storage);
 
   @override
   _UploadScreenState createState() => _UploadScreenState();
 }
 
 class _UploadScreenState extends State<UploadScreen> {
-  final String _imageUrl =
-      'https://images.unsplash.com/photo-1573766917336-4ce32afd1907?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=750&q=80';
   final _form = GlobalKey<FormState>();
   final _titleFocusNode = FocusNode();
   final _descriptionFocusNode = FocusNode();
-  var _isLoading = false;
+  String _downloadUrl;
+  File file;
+  bool _isLoading = false;
   var _newContentItem = ContentItem(
     title: '',
     timestamp: DateTime.now(),
@@ -29,6 +40,27 @@ class _UploadScreenState extends State<UploadScreen> {
     userId: '',
     description: '',
   );
+  GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey();
+  List<StorageUploadTask> _tasks = <StorageUploadTask>[];
+
+  Future<void> _uploadFile(File file, String fileName) async {
+    final String uuid = Uuid().v1();
+    final StorageReference ref =
+        widget.storage.ref().child('videos').child('$fileName.mp4');
+
+    final StorageUploadTask uploadTask = ref.putFile(
+      file,
+      StorageMetadata(
+        contentLanguage: 'en',
+        customMetadata: <String, String>{'activity': 'test'},
+      ),
+    );
+    this._downloadUrl =
+        await (await uploadTask.onComplete).ref.getDownloadURL();
+    setState(() {
+      _tasks.add(uploadTask);
+    });
+  }
 
   void _saveForm() async {
     if (!this._form.currentState.validate()) return;
@@ -37,8 +69,13 @@ class _UploadScreenState extends State<UploadScreen> {
       this._isLoading = true;
     });
     try {
+      if (this.file == null) return;
+      final contentItemId =
+          await Provider.of<ContentItems>(context, listen: false)
+              .addContent(this._newContentItem);
+      await this._uploadFile(this.file, contentItemId);
       await Provider.of<ContentItems>(context, listen: false)
-          .addContent(this._newContentItem);
+          .updatePost('mediaUrl', this._downloadUrl, contentItemId);
     } catch (error) {
       print(error);
       await showDialog(
@@ -72,7 +109,8 @@ class _UploadScreenState extends State<UploadScreen> {
   @override
   Widget build(BuildContext context) {
     var signedInUser = Provider.of<Users>(context).signedInUser;
-    print(signedInUser.id);
+    final args = ModalRoute.of(context).settings.arguments as dynamic;
+    this.file = args['file'];
     return Scaffold(
       appBar: AppBar(
         title: Text('Add new Post'),
@@ -103,7 +141,7 @@ class _UploadScreenState extends State<UploadScreen> {
                         id: this._newContentItem.id,
                         comments: this._newContentItem.comments,
                         likes: this._newContentItem.likes,
-                        mediaUrl: this._imageUrl,
+                        mediaUrl: this._newContentItem.mediaUrl,
                         userId: signedInUser.id,
                         description: this._newContentItem.description,
                       ),
@@ -123,7 +161,7 @@ class _UploadScreenState extends State<UploadScreen> {
                         id: this._newContentItem.id,
                         comments: this._newContentItem.comments,
                         likes: this._newContentItem.likes,
-                        mediaUrl: this._imageUrl,
+                        mediaUrl: this._newContentItem.mediaUrl,
                         userId: signedInUser.id,
                         description: value,
                       ),
@@ -131,10 +169,7 @@ class _UploadScreenState extends State<UploadScreen> {
                     SizedBox(
                       height: 30,
                     ),
-                    Image.network(
-                      this._imageUrl,
-                      fit: BoxFit.cover,
-                    )
+                    FileVideoPlayer(false, file),
                   ],
                 ),
               ),

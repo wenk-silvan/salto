@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -7,9 +10,17 @@ import 'package:salto/screens/search_screen.dart';
 import 'package:salto/screens/settings_screen.dart';
 import 'package:salto/screens/upload_screen.dart';
 
-import '../models/user.dart';
-
 class BaseAppBar extends StatelessWidget implements PreferredSizeWidget {
+  void _chooseVideo (BuildContext ctx) async {
+    File file = await FilePicker.getFile(type: FileType.video);
+    print('Picked file from path: ${file.path}');
+    Navigator.of(ctx).pop();
+    Navigator.of(ctx)
+        .pushNamed(UploadScreen.route, arguments: {
+      'file': file
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     var signedInUser = Provider.of<Users>(context).signedInUser;
@@ -42,12 +53,8 @@ class BaseAppBar extends StatelessWidget implements PreferredSizeWidget {
                             }),
                         FlatButton(
                             child: Text('From Gallery'),
-                            //TODO: select video from galley
-                            onPressed: () {
-                              Navigator.of(context).pop();
-                              Navigator.of(context)
-                                  .pushNamed(UploadScreen.route);
-                            }),
+                            onPressed: () => this._chooseVideo(context),
+                        ),
                       ],
                     );
                   });

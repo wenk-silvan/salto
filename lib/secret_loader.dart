@@ -9,7 +9,7 @@ class SecretLoader {
   Future<Secret> load() {
     return rootBundle.loadStructuredData<Secret>(this.secretPath,
             (jsonStr) async {
-          final secret = Secret.fromJson(json.decode(jsonStr));
+          final secret = Secret.googleServices(json.decode(jsonStr));
           return secret;
         });
   }

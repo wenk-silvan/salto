@@ -25,12 +25,14 @@ class ContentItems with ChangeNotifier {
     return this.getContentOfUsers(this._favoriteUserIds);
   }
 
-  Future<void> addContent(ContentItem item) async {
+  Future<String> addContent(ContentItem item) async {
     final body = ContentItem.toJson(item);
     final response =
         await http.post('$url/content.json$authString', body: body);
-    this.items.add(ContentItem.copy(item, json.decode(response.body)['name']));
+    final contentItemId = json.decode(response.body)['name'];
+    this.items.add(ContentItem.copy(item, contentItemId));
     this.notifyListeners();
+    return contentItemId;
   }
 
   Future<void> toggleFavorites(ContentItem post, userId) async {
@@ -44,7 +46,7 @@ class ContentItems with ChangeNotifier {
   Future<void> addToFavorites(ContentItem post, String userId) async {
     post.likes.add(userId);
     try {
-      final statusCode = await this._updateLikesOfPost(post.likes, post.id);
+      final statusCode = await this.updatePost('likes', post.likes, post.id);
       if (statusCode >= 400) {
         print("Error while adding like.");
         post.likes.remove(userId);
@@ -97,7 +99,7 @@ class ContentItems with ChangeNotifier {
   Future<void> removeFromFavorites(ContentItem post, String userId) async {
     post.likes.remove(userId);
     try {
-      final statusCode = await this._updateLikesOfPost(post.likes, post.id);
+      final statusCode = await this.updatePost('likes', post.likes, post.id);
       if (statusCode >= 400) {
         print("Error while removing like.");
         post.likes.add(userId);
@@ -108,9 +110,9 @@ class ContentItems with ChangeNotifier {
     }
   }
 
-  Future<int> _updateLikesOfPost(List<String> likes, String postId) async {
+  Future<int> updatePost(String field, dynamic data, String postId) async {
     final body = json.encode({
-      'likes': likes,
+      field: data,
     });
     try {
       final response =
