@@ -1,6 +1,6 @@
 # salto
 
-Nobody cares
+A new Flutter application.
 
 ## Getting Started
 
