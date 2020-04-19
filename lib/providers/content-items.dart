@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
+import 'package:salto/models/http_exception.dart';
 import 'package:salto/models/user.dart';
 
 import '../models/content-item.dart';
@@ -35,14 +36,6 @@ class ContentItems with ChangeNotifier {
     return contentItemId;
   }
 
-  Future<void> toggleFavorites(ContentItem post, userId) async {
-    if (ContentItem.isFavorite(post, userId)) {
-      await this.removeFromFavorites(post, userId);
-    } else {
-      await this.addToFavorites(post, userId);
-    }
-  }
-
   Future<void> addToFavorites(ContentItem post, String userId) async {
     post.likes.add(userId);
     try {
@@ -55,6 +48,20 @@ class ContentItems with ChangeNotifier {
       print(error);
       post.likes.remove(userId);
     }
+  }
+
+  Future<void> deleteContent(String postId) async {
+    try {
+      final response = await http.delete('$url/content/$postId.json$authString');
+      if (response.statusCode >= 400) {
+        throw HttpException("Error while deleting post.");
+      }
+    } catch (error) {
+      print(error);
+      throw HttpException("Error while deleting post.");
+    }
+    this.notifyListeners();
+
   }
 
   List<ContentItem> findByTitle(String text) {
@@ -109,6 +116,14 @@ class ContentItems with ChangeNotifier {
     } catch (error) {
       print(error);
       post.likes.add(userId);
+    }
+  }
+
+  Future<void> toggleFavorites(ContentItem post, userId) async {
+    if (ContentItem.isFavorite(post, userId)) {
+      await this.removeFromFavorites(post, userId);
+    } else {
+      await this.addToFavorites(post, userId);
     }
   }
 
