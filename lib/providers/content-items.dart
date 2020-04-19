@@ -72,6 +72,7 @@ class ContentItems with ChangeNotifier {
     if (extracted == null) return;
     extracted.forEach(
         (id, data) => loadedContent.add(ContentItem.fromJson(id, data)));
+    loadedContent.sort((a, b) => b.timestamp.compareTo(a.timestamp));
     this._items = loadedContent.toList();
     print("Loaded content from database.");
     this.notifyListeners();
@@ -93,6 +94,7 @@ class ContentItems with ChangeNotifier {
     List<ContentItem> items = [];
     userIds.forEach(
         (id) => items.addAll(this._items.where((i) => i.userId == id)));
+    items.sort((a, b) => b.timestamp.compareTo(a.timestamp));
     return items;
   }
 

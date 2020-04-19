@@ -4,10 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 
 class FileVideoPlayer extends StatefulWidget {
-  final bool autoplay;
+  final bool autoPlay;
   final File file;
   final String networkUri;
-  FileVideoPlayer(this.autoplay, this.file, [this.networkUri = '']);
+  FileVideoPlayer(this.autoPlay, this.file, [this.networkUri = '']);
 
   @override
   _FileVideoPlayerState createState() => _FileVideoPlayerState();
@@ -25,8 +25,9 @@ class _FileVideoPlayerState extends State<FileVideoPlayer> {
     else {
       _controller = VideoPlayerController.file(widget.file);
     }
-    _controller.setLooping(widget.autoplay);
+    _controller.setLooping(widget.autoPlay);
     _initializeVideoPlayerFuture = _controller.initialize();
+    super.initState();
   }
 
   @override
@@ -61,9 +62,9 @@ class _FileVideoPlayerState extends State<FileVideoPlayer> {
                   children: <Widget>[
                     VideoPlayer(_controller),
                     Center(
-                      child: FloatingActionButton(
+                      child: RaisedButton(
                         onPressed: () => this._toggleVideoState(),
-                        backgroundColor: Colors.white38,
+                        //backgroundColor: Colors.white38,
                         child: Icon(
                           _controller.value.isPlaying
                               ? Icons.pause

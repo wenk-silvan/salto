@@ -11,8 +11,6 @@ import 'package:video_player/video_player.dart';
 
 import '../models/content-item.dart';
 
-const String kTestString = 'Hello world!';
-
 class UploadScreen extends StatefulWidget {
   static const route = '/upload';
   final FirebaseStorage storage;
@@ -40,11 +38,9 @@ class _UploadScreenState extends State<UploadScreen> {
     userId: '',
     description: '',
   );
-  GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey();
   List<StorageUploadTask> _tasks = <StorageUploadTask>[];
 
   Future<void> _uploadFile(File file, String fileName) async {
-    final String uuid = Uuid().v1();
     final StorageReference ref =
         widget.storage.ref().child('videos').child('$fileName.mp4');
 
@@ -109,8 +105,7 @@ class _UploadScreenState extends State<UploadScreen> {
   @override
   Widget build(BuildContext context) {
     var signedInUser = Provider.of<Users>(context).signedInUser;
-    final args = ModalRoute.of(context).settings.arguments as dynamic;
-    this.file = args['file'];
+    this.file = ModalRoute.of(context).settings.arguments as dynamic;
     return Scaffold(
       appBar: AppBar(
         title: Text('Add new Post'),

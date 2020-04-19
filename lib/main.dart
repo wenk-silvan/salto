@@ -1,3 +1,4 @@
+import 'package:camera/camera.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
@@ -7,6 +8,7 @@ import 'package:salto/providers/comments.dart';
 import 'package:salto/providers/content-items.dart';
 import 'package:salto/providers/media.dart';
 import 'package:salto/providers/users.dart';
+import 'package:salto/screens/camera_screen.dart';
 import 'package:salto/screens/auth_screen.dart';
 import 'package:salto/screens/profile_screen.dart';
 import 'package:salto/screens/search_screen.dart';
@@ -18,11 +20,9 @@ import 'package:salto/screens/post_screen.dart';
 import 'package:salto/secret.dart';
 import 'package:salto/secret_loader.dart';
 
-//void main() => runApp(MyApp());
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
+  final cameras = await availableCameras();
   Future<Secret> secret = SecretLoader(secretPath: "secrets.json").load();
   await secret.then((secret) async {
     final FirebaseApp app = await FirebaseApp.configure(
@@ -35,13 +35,14 @@ void main() async {
     );
     final FirebaseStorage storage = FirebaseStorage(
         app: app, storageBucket: secret.storageBucket);
-    runApp(MyApp(storage: storage));
+    runApp(MyApp(storage: storage, cameras: cameras,));
   });
 }
 
 class MyApp extends StatelessWidget {
+  final List<CameraDescription> cameras;
   final FirebaseStorage storage;
-  MyApp({this.storage});
+  MyApp({this.storage, this.cameras});
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
@@ -105,6 +106,7 @@ class MyApp extends StatelessWidget {
             SearchScreen.route: (ctx) => SearchScreen(),
             AuthScreen.route: (ctx, ) => AuthScreen(),
             PostScreen.route: (ctx) => PostScreen(),
+            CameraScreen.route: (ctx) => CameraScreen(cameras: this.cameras),
           },
           onUnknownRoute: (settings) =>
               MaterialPageRoute(builder: (ctx) => TabsScreen()),

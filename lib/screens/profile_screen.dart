@@ -89,7 +89,7 @@ class ProfileScreen extends StatelessWidget {
             ),
           ),
           SizedBox(height: 10),
-          Consumer<ContentItems>(builder: (ctx, content, _) {
+          /*Consumer<ContentItems>(builder: (ctx, content, _) {
             final contentUrls = content.getContentByUserId(userId);
             return SingleChildScrollView(
               child: Container(
@@ -111,7 +111,7 @@ class ProfileScreen extends StatelessWidget {
                 ),
               ),
             );
-          })
+          })*/
         ],
       ),
     );

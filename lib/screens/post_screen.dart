@@ -13,7 +13,6 @@ import 'package:salto/models/user.dart';
 import 'package:salto/providers/comments.dart';
 import 'package:salto/providers/content-items.dart';
 import 'package:salto/providers/users.dart';
-import 'package:video_player/video_player.dart';
 
 class PostScreen extends StatefulWidget {
   static const route = '/player';
