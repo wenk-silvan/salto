@@ -41,7 +41,6 @@ class CameraScreenState extends State<CameraScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   CameraController _controller;
   String _videoPath;
-  AnimationController _timerController;
   Timer _timer;
   int _recordingTime;
   String _timerString;
