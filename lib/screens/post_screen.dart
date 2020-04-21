@@ -48,7 +48,7 @@ class _PostScreenState extends State<PostScreen> {
             statement: 'Are you sure to delete the post?',
             callback: () async {
               await Provider.of<ContentItems>(ctx, listen: false).deleteContent(_post.id);
-              _removeVideo(ctx);
+              await _removeVideo(ctx);
               Navigator.pushReplacementNamed(context, '/');
             },
           );
@@ -56,6 +56,7 @@ class _PostScreenState extends State<PostScreen> {
   }
 
   void _initialize() {
+    print(widget.storage);
     final args = ModalRoute.of(context).settings.arguments as dynamic;
     final postId = args['contentItemId'];
     this._post = Provider.of<ContentItems>(context, listen: false)
@@ -74,7 +75,7 @@ class _PostScreenState extends State<PostScreen> {
     }
   }
 
-  void _removeVideo(BuildContext ctx) async {
+  Future<void> _removeVideo(BuildContext ctx) async {
     await widget.storage.ref().child('videos').child('${_post.id}.mp4').delete();
   }
 

@@ -93,6 +93,7 @@ class _UploadScreenState extends State<UploadScreen> {
       this._isLoading = false;
     });
     Navigator.of(context).pop();
+    Navigator.of(context).pop();
   }
 
   @override
@@ -164,7 +165,7 @@ class _UploadScreenState extends State<UploadScreen> {
                     SizedBox(
                       height: 30,
                     ),
-                    FileVideoPlayer(false, file),
+                    FileVideoPlayer(true, file),
                   ],
                 ),
               ),

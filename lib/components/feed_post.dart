@@ -68,7 +68,7 @@ class _FeedPostState extends State<FeedPost> {
                   'contentItemId': widget.post.id,
                 }),
                 //child: Image.network(widget.post.mediaUrl, fit: BoxFit.cover),
-                child: widget.post.mediaUrl.isNotEmpty ? FileVideoPlayer(false, File(''), widget.post.mediaUrl) : Text(""),
+                child: widget.post.mediaUrl.isNotEmpty ? FileVideoPlayer(true, File(''), widget.post.mediaUrl) : Text(""),
                 //child: Text("Video goes here.")
               ),
             ),

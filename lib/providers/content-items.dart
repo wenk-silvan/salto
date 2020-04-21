@@ -60,8 +60,6 @@ class ContentItems with ChangeNotifier {
       print(error);
       throw HttpException("Error while deleting post.");
     }
-    this.notifyListeners();
-
   }
 
   List<ContentItem> findByTitle(String text) {

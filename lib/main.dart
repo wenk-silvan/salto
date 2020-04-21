@@ -105,7 +105,7 @@ class MyApp extends StatelessWidget {
             ProfileScreen.route: (ctx) => ProfileScreen(),
             SearchScreen.route: (ctx) => SearchScreen(),
             AuthScreen.route: (ctx, ) => AuthScreen(),
-            PostScreen.route: (ctx) => PostScreen(),
+            PostScreen.route: (ctx) => PostScreen(storage: this.storage),
             CameraScreen.route: (ctx) => CameraScreen(cameras: this.cameras),
           },
           onUnknownRoute: (settings) =>

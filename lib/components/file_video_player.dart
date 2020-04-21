@@ -1,14 +1,15 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 
 class FileVideoPlayer extends StatefulWidget {
-  final bool autoPlay;
+  final bool loop;
   final File file;
   final String networkUri;
 
-  FileVideoPlayer(this.autoPlay, this.file, [this.networkUri = '']);
+  FileVideoPlayer(this.loop, this.file, [this.networkUri = '']);
 
   @override
   _FileVideoPlayerState createState() => _FileVideoPlayerState();
@@ -17,6 +18,7 @@ class FileVideoPlayer extends StatefulWidget {
 class _FileVideoPlayerState extends State<FileVideoPlayer> {
   VideoPlayerController _controller;
   Future<void> _initializeVideoPlayerFuture;
+  bool _iconVisible = false;
 
   @override
   void initState() {
@@ -25,7 +27,7 @@ class _FileVideoPlayerState extends State<FileVideoPlayer> {
     } else {
       _controller = VideoPlayerController.file(widget.file);
     }
-    _controller.setLooping(widget.autoPlay);
+    _controller.setLooping(widget.loop);
     _initializeVideoPlayerFuture = _controller.initialize();
     super.initState();
   }
@@ -38,11 +40,17 @@ class _FileVideoPlayerState extends State<FileVideoPlayer> {
 
   void _toggleVideoState() {
     setState(() {
+      _iconVisible = true;
       if (_controller.value.isPlaying) {
         _controller.pause();
       } else {
         _controller.play();
       }
+      Timer(Duration(seconds: 1), () {
+        setState(() {
+          _iconVisible = false;
+        });
+      });
     });
   }
 
@@ -75,13 +83,20 @@ class _FileVideoPlayerState extends State<FileVideoPlayer> {
                         ),
                         VideoPlayer(_controller),
                         Center(
-                          child: RaisedButton(
-                            onPressed: () => this._toggleVideoState(),
-                            //backgroundColor: Colors.white38,
-                            child: Icon(
-                              _controller.value.isPlaying
-                                  ? Icons.pause
-                                  : Icons.play_arrow,
+                          child: AnimatedOpacity(
+                            opacity: _iconVisible ? 1.0 : 0.0,
+                            duration: Duration(milliseconds: 300),
+                            child: CircleAvatar(
+                              radius: 25,
+                              backgroundColor: Colors.white60,
+                              child: IconButton(
+                                onPressed: () => this._toggleVideoState(),
+                                icon: Icon(
+                                  _controller.value.isPlaying
+                                      ? Icons.pause
+                                      : Icons.play_arrow,
+                                ),
+                              ),
                             ),
                           ),
                         ),
