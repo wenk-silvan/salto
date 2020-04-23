@@ -1,11 +1,13 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:salto/screens/upload_screen.dart';
+import 'package:sensors/sensors.dart';
 
 class CameraScreen extends StatefulWidget {
   static const route = '/camera';
@@ -40,6 +42,7 @@ class CameraScreenState extends State<CameraScreen> {
   Future<void> _initializeControllerFuture;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   CameraController _controller;
+  DeviceOrientation _orientation;
   String _videoPath;
   Timer _timer;
   int _recordingTime;
@@ -48,6 +51,30 @@ class CameraScreenState extends State<CameraScreen> {
   @override
   void initState() {
     super.initState();
+    var running = false;
+    accelerometerEvents.listen((AccelerometerEvent event) {
+      if (running || _controller.value.isRecordingVideo ||
+          _controller.value.isRecordingPaused) return;
+      running = true;
+      Timer(Duration(milliseconds: 500), () {
+        running = false;
+        DeviceOrientation orientation;
+        if (event.y <= 5) {
+          if (event.x > 0)
+            orientation = DeviceOrientation.landscapeLeft;
+          else
+            orientation = DeviceOrientation.landscapeRight;
+        } else {
+          orientation = DeviceOrientation.portraitUp;
+        }
+        if (_orientation != orientation) {
+          setState(() {
+            _orientation = orientation;
+          });
+        }
+      });
+    });
+
     if (widget.cameras.isEmpty) {
       return;
     }
@@ -65,6 +92,7 @@ class CameraScreenState extends State<CameraScreen> {
   void dispose() {
     _controller.dispose();
     _timer.cancel();
+
     super.dispose();
   }
 
@@ -76,21 +104,26 @@ class CameraScreenState extends State<CameraScreen> {
         title: const Text('Record Video'),
         actions: <Widget>[
           IconButton(
-            icon: const Icon(Icons.aspect_ratio),
-            onPressed: _controller != null && !_controller.value.isRecordingVideo ? _changeAspectRatio : null,
-          ),
-          IconButton(
-            icon: Icon(this._controller.description.lensDirection ==
-                    CameraLensDirection.back
-                ? Icons.camera_front
-                : Icons.camera_rear),
+            icon: _rotatedWidgetBuilder(Icon(
+                this._controller.description.lensDirection ==
+                        CameraLensDirection.back
+                    ? Icons.camera_front
+                    : Icons.camera_rear)),
             onPressed: () =>
                 this._switchCamera(this._controller.description.lensDirection),
           ),
+          IconButton(
+            icon: _rotatedWidgetBuilder(Icon(Icons.aspect_ratio)),
+            onPressed:
+                _controller != null && !_controller.value.isRecordingVideo
+                    ? _changeAspectRatio
+                    : null,
+          ),
+          SizedBox(width: 20),
         ],
       ),
       body: FutureBuilder(
-        future: this._initializeControllerFuture,
+        future: _initializeControllerFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.done) {
             return Column(
@@ -137,15 +170,6 @@ class CameraScreenState extends State<CameraScreen> {
     }
   }
 
-  void _switchCamera(CameraLensDirection currentDirection) {
-    final newDirection = currentDirection == CameraLensDirection.back
-        ? CameraLensDirection.front
-        : CameraLensDirection.back;
-    final newCamera =
-        widget.cameras.firstWhere((cam) => cam.lensDirection == newDirection);
-    this._onNewCameraSelected(newCamera);
-  }
-
   Widget _cameraPreviewWidget() {
     if (_controller == null || !_controller.value.isInitialized) {
       return Center(child: CircularProgressIndicator());
@@ -163,12 +187,12 @@ class CameraScreenState extends State<CameraScreen> {
               _controller.value.isInitialized &&
               _controller.value.isRecordingVideo)
             Positioned(
-              right: 3,
-              top: 3,
-              child: Text(
+              right: _orientation == DeviceOrientation.portraitUp ? 10 : 0,
+              top: _orientation == DeviceOrientation.portraitUp ? 10 : 20,
+              child: _rotatedWidgetBuilder(Text(
                 _timerString,
                 style: TextStyle(color: Colors.red),
-              ),
+              )),
             ),
         ],
       );
@@ -219,7 +243,7 @@ class CameraScreenState extends State<CameraScreen> {
           CircleAvatar(
             radius: 25,
             backgroundColor: Colors.white60,
-            child: IconButton(
+            child: _rotatedWidgetBuilder(IconButton(
               icon: _controller != null && _controller.value.isRecordingPaused
                   ? Icon(Icons.play_arrow)
                   : Icon(Icons.pause),
@@ -231,7 +255,7 @@ class CameraScreenState extends State<CameraScreen> {
                       ? _resumeVideoRecording
                       : _pauseVideoRecording)
                   : null,
-            ),
+            )),
           ),
           CircleAvatar(
             radius: 30,
@@ -266,6 +290,28 @@ class CameraScreenState extends State<CameraScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  void _switchCamera(CameraLensDirection currentDirection) {
+    final newDirection = currentDirection == CameraLensDirection.back
+        ? CameraLensDirection.front
+        : CameraLensDirection.back;
+    final newCamera =
+        widget.cameras.firstWhere((cam) => cam.lensDirection == newDirection);
+    this._onNewCameraSelected(newCamera);
+  }
+
+  Widget _rotatedWidgetBuilder(Widget widget) {
+    double angle = 0;
+    if (_orientation == DeviceOrientation.landscapeLeft)
+      angle = (pi / 2);
+    else if (_orientation == DeviceOrientation.landscapeRight)
+      angle = -(pi / 2);
+    print("Angle = $angle");
+    return Transform.rotate(
+      angle: angle,
+      child: widget,
     );
   }
 
@@ -356,7 +402,7 @@ class CameraScreenState extends State<CameraScreen> {
 
     _timer = Timer.periodic(Duration(seconds: 1), (timer) {
       _recordingTime++;
-      _setTimerString() ;
+      _setTimerString();
     });
 
     try {
@@ -373,7 +419,8 @@ class CameraScreenState extends State<CameraScreen> {
     final minutes = (_recordingTime / 60).floor();
     final seconds = _recordingTime - 60 * minutes;
     setState(() {
-      _timerString = '${minutes < 10 ? '0':''}$minutes:${seconds < 10 ? '0':''}$seconds';
+      _timerString =
+          '${minutes < 10 ? '0' : ''}$minutes:${seconds < 10 ? '0' : ''}$seconds';
     });
   }
 
@@ -395,7 +442,7 @@ class CameraScreenState extends State<CameraScreen> {
     _recordingTime = 0;
     _timer = Timer.periodic(Duration(seconds: 1), (timer) {
       _recordingTime++;
-      _setTimerString() ;
+      _setTimerString();
     });
 
     final Directory extDir = await getApplicationDocumentsDirectory();
@@ -422,9 +469,7 @@ class CameraScreenState extends State<CameraScreen> {
     if (!_controller.value.isRecordingVideo) {
       return null;
     }
-
     _timer.cancel();
-
     try {
       await _controller.stopVideoRecording();
     } on CameraException catch (e) {

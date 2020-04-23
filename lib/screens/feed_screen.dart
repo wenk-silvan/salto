@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:salto/components/feed_post.dart';
 import 'package:provider/provider.dart';
 import 'package:salto/models/user.dart';
@@ -10,12 +11,16 @@ class FeedScreen extends StatelessWidget {
 
   FeedScreen({@required this.isFavorites});
 
+  Future<void> _initialize(BuildContext ctx, User signedInUser) async {
+    await Provider.of<ContentItems>(ctx, listen: false)
+        .getContent(signedInUser);
+  }
+
   @override
   Widget build(BuildContext context) {
     var signedInUser = Provider.of<Users>(context).signedInUser;
     return FutureBuilder(
-      future: Provider.of<ContentItems>(context, listen: false)
-          .getContent(signedInUser),
+      future: _initialize(context, signedInUser),
       builder: (ctx, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Center(child: CircularProgressIndicator());
