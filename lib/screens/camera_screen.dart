@@ -43,6 +43,7 @@ class CameraScreenState extends State<CameraScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   CameraController _controller;
   DeviceOrientation _orientation;
+  bool _rotationMessageShown = false;
   String _videoPath;
   Timer _timer;
   int _recordingTime;
@@ -59,13 +60,19 @@ class CameraScreenState extends State<CameraScreen> {
       Timer(Duration(milliseconds: 500), () {
         running = false;
         DeviceOrientation orientation;
+        orientation = DeviceOrientation.portraitUp;
         if (event.y <= 5) {
-          if (event.x > 0)
+          if (event.x > 3) {
             orientation = DeviceOrientation.landscapeLeft;
-          else
-            orientation = DeviceOrientation.landscapeRight;
-        } else {
-          orientation = DeviceOrientation.portraitUp;
+            _rotationMessageShown = false;
+          }
+          else if (event.x < -3) {
+            orientation = DeviceOrientation.portraitUp;
+            if (!_rotationMessageShown) {
+              _showInSnackBar("Please rotate device.");
+              _rotationMessageShown = true;
+            }
+          }
         }
         if (_orientation != orientation) {
           setState(() {
@@ -308,7 +315,6 @@ class CameraScreenState extends State<CameraScreen> {
       angle = (pi / 2);
     else if (_orientation == DeviceOrientation.landscapeRight)
       angle = -(pi / 2);
-    print("Angle = $angle");
     return Transform.rotate(
       angle: angle,
       child: widget,

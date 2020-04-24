@@ -3,9 +3,11 @@ import 'dart:io';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:salto/components/add_post_dialog.dart';
 import 'package:salto/components/file_video_player.dart';
 import 'package:salto/providers/content-items.dart';
 import 'package:salto/providers/users.dart';
+import 'package:salto/screens/camera_screen.dart';
 import 'package:uuid/uuid.dart';
 import 'package:video_player/video_player.dart';
 
@@ -111,6 +113,13 @@ class _UploadScreenState extends State<UploadScreen> {
       appBar: AppBar(
         title: Text('Add new Post'),
         actions: <Widget>[
+          IconButton(
+            tooltip: "Take new.",
+            icon: Icon(Icons.add_a_photo),
+            onPressed: () => showDialog(
+                context: context,
+                builder: (BuildContext ctx) => AddPostDialog()),
+          ),
           IconButton(
             icon: Icon(Icons.save),
             onPressed: this._saveForm,
