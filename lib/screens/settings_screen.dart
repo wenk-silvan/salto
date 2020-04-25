@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:salto/components/confirm_dialog.dart';
+import 'package:salto/components/stylish_raised_button.dart';
 import 'package:salto/providers/auth.dart';
 import 'package:salto/providers/users.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -47,36 +49,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
         context: context,
         builder: (BuildContext context) {
           // return object of type Dialog
-          return AlertDialog(
-            title: Text('Confirm Removal of Account'),
-            titleTextStyle: TextStyle(color: Theme.of(context).primaryColor),
-            content: Container(
-              height: 100,
-              child: Column(
-                children: <Widget>[
-                  const Text(
-                      'Are you sure to remove your account and all it`s data?'),
-                  Spacer(),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: <Widget>[
-                      RaisedButton(
-                        color: Colors.red,
-                        child: const Text('Cancel'),
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                        },
-                      ),
-                      RaisedButton(
-                        color: Colors.green,
-                        child: const Text('Ok'),
-                        onPressed: () => this._deleteAccount()
-                      ),
-                    ],
-                  )
-                ],
-              ),
-            ),
+          return ConfirmDialog(
+            callback: this._deleteAccount,
+            statement: 'Remove your account and all it`s data?',
           );
         });
   }
@@ -116,14 +91,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
               print('toggled notifications');
             },
           ),
-          SizedBox(height: 10),
+          SizedBox(height: 30),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              FlatButton(
-                color: Colors.red,
-                child: const Text('Delete Account'),
-                onPressed: () => this._confirmDeleteAccount(),
+              StylishRaisedButton(
+                callback: this._confirmDeleteAccount,
+                child: Text('Delete Account',
+                    style: TextStyle(
+                        color: Theme.of(context).textTheme.title.color)),
               ),
             ],
           )

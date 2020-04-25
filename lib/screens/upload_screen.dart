@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:salto/components/add_post_dialog.dart';
 import 'package:salto/components/file_video_player.dart';
+import 'package:salto/components/stylish_raised_button.dart';
 import 'package:salto/providers/content-items.dart';
 import 'package:salto/providers/users.dart';
 import 'package:salto/screens/camera_screen.dart';
@@ -95,7 +96,7 @@ class _UploadScreenState extends State<UploadScreen> {
       this._isLoading = false;
     });
     Navigator.of(context).pop();
-    Navigator.of(context).pop();
+    //Navigator.of(context).pop();
   }
 
   @override
@@ -109,73 +110,77 @@ class _UploadScreenState extends State<UploadScreen> {
   Widget build(BuildContext context) {
     var signedInUser = Provider.of<Users>(context).signedInUser;
     this.file = ModalRoute.of(context).settings.arguments as dynamic;
+    print(this.file.path);
     return Scaffold(
       appBar: AppBar(
-        title: Text('Add new Post'),
-        actions: <Widget>[
-          IconButton(
-            tooltip: "Take new.",
-            icon: Icon(Icons.add_a_photo),
-            onPressed: () => showDialog(
-                context: context,
-                builder: (BuildContext ctx) => AddPostDialog()),
-          ),
-          IconButton(
-            icon: Icon(Icons.save),
-            onPressed: this._saveForm,
-          ),
-        ],
+        title: const Text('Add new Post'),
       ),
       body: this._isLoading
           ? Center(child: CircularProgressIndicator())
-          : Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Form(
-                key: this._form,
-                child: ListView(
-                  children: <Widget>[
-                    TextFormField(
-                      decoration: InputDecoration(labelText: 'Title'),
-                      textInputAction: TextInputAction.next,
-                      focusNode: this._titleFocusNode,
-                      onFieldSubmitted: (_) => FocusScope.of(context)
-                          .requestFocus(this._descriptionFocusNode),
-                      onSaved: (value) => this._newContentItem = ContentItem(
-                        title: value,
-                        timestamp: this._newContentItem.timestamp,
-                        id: this._newContentItem.id,
-                        comments: this._newContentItem.comments,
-                        likes: this._newContentItem.likes,
-                        mediaUrl: this._newContentItem.mediaUrl,
-                        userId: signedInUser.id,
-                        description: this._newContentItem.description,
+          : SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Form(
+                  key: this._form,
+                  child: Column(
+                    children: <Widget>[
+                      TextFormField(
+                        decoration: InputDecoration(labelText: 'Title'),
+                        textInputAction: TextInputAction.next,
+                        focusNode: this._titleFocusNode,
+                        onFieldSubmitted: (_) => FocusScope.of(context)
+                            .requestFocus(this._descriptionFocusNode),
+                        onSaved: (value) => this._newContentItem = ContentItem(
+                          title: value,
+                          timestamp: this._newContentItem.timestamp,
+                          id: this._newContentItem.id,
+                          comments: this._newContentItem.comments,
+                          likes: this._newContentItem.likes,
+                          mediaUrl: this._newContentItem.mediaUrl,
+                          userId: signedInUser.id,
+                          description: this._newContentItem.description,
+                        ),
+                        validator: (value) {
+                          if (value.isEmpty) return 'Please enter a title.';
+                          return null;
+                        },
                       ),
-                      validator: (value) {
-                        if (value.isEmpty) return 'Please enter a title.';
-                        return null;
-                      },
-                    ),
-                    TextFormField(
-                      decoration: InputDecoration(labelText: 'Description'),
-                      textInputAction: TextInputAction.done,
-                      focusNode: this._descriptionFocusNode,
-                      onFieldSubmitted: (_) => this._saveForm(),
-                      onSaved: (value) => this._newContentItem = ContentItem(
-                        title: this._newContentItem.title,
-                        timestamp: this._newContentItem.timestamp,
-                        id: this._newContentItem.id,
-                        comments: this._newContentItem.comments,
-                        likes: this._newContentItem.likes,
-                        mediaUrl: this._newContentItem.mediaUrl,
-                        userId: signedInUser.id,
-                        description: value,
+                      TextFormField(
+                        decoration: InputDecoration(labelText: 'Description'),
+                        textInputAction: TextInputAction.done,
+                        focusNode: this._descriptionFocusNode,
+                        onFieldSubmitted: (_) => this._saveForm(),
+                        onSaved: (value) => this._newContentItem = ContentItem(
+                          title: this._newContentItem.title,
+                          timestamp: this._newContentItem.timestamp,
+                          id: this._newContentItem.id,
+                          comments: this._newContentItem.comments,
+                          likes: this._newContentItem.likes,
+                          mediaUrl: this._newContentItem.mediaUrl,
+                          userId: signedInUser.id,
+                          description: value,
+                        ),
                       ),
-                    ),
-                    SizedBox(
-                      height: 30,
-                    ),
-                    FileVideoPlayer(true, file),
-                  ],
+                      SizedBox(height: 20),
+                      FileVideoPlayer(true, file),
+                      SizedBox(height: 20),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: <Widget>[
+                          StylishRaisedButton(
+                            callback: () => showDialog(
+                                context: context,
+                                builder: (BuildContext ctx) => AddPostDialog()),
+                            child: Icon(Icons.add_a_photo, color: Colors.white),
+                          ),
+                          StylishRaisedButton(
+                            callback: _saveForm,
+                            child: Icon(Icons.file_upload, color: Colors.white),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),

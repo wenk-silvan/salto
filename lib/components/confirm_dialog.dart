@@ -1,43 +1,34 @@
 import 'package:flutter/material.dart';
 
 class ConfirmDialog extends StatelessWidget {
-  final String header;
   final String statement;
   final Function callback;
+  static const Color textColor = Colors.white;
 
-  ConfirmDialog({this.header, this.statement, this.callback});
+  ConfirmDialog({this.statement, this.callback});
 
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text(this.header),
-      titleTextStyle: TextStyle(color: Theme.of(context).primaryColor),
-      content: Container(
-        height: 100,
-        child: Column(
-          children: <Widget>[
-            Text(this.statement),
-            Spacer(),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: <Widget>[
-                RaisedButton(
-                  color: Colors.red,
-                  child: const Text('Cancel'),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-                RaisedButton(
-                  color: Colors.green,
-                  child: const Text('Ok'),
-                  onPressed: this.callback,
-                ),
-              ],
-            )
-          ],
+        backgroundColor: Colors.black,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        elevation: 10,
+        title: Text(
+          this.statement,
+          style: TextStyle(fontSize: 20),
         ),
-      ),
-    );
+        titleTextStyle: TextStyle(color: textColor),
+        content: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: <Widget>[
+            FlatButton(
+                child: Text('Cancel', style: TextStyle(color: textColor)),
+                onPressed: () => Navigator.of(context).pop()),
+            FlatButton(
+              child: const Text('Ok', style: TextStyle(color: textColor)),
+              onPressed: this.callback,
+            ),
+          ],
+        ));
   }
 }

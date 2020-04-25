@@ -44,8 +44,7 @@ class _PostScreenState extends State<PostScreen> {
         builder: (BuildContext ctx) {
           // return object of type Dialog
           return ConfirmDialog(
-            header: 'Removal of Post',
-            statement: 'Are you sure to delete the post?',
+            statement: 'Delete the post?',
             callback: () async {
               await Provider.of<ContentItems>(ctx, listen: false).deleteContent(_post.id);
               await _removeVideo(ctx);

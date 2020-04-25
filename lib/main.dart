@@ -92,8 +92,8 @@ class MyApp extends StatelessWidget {
         builder: (ctx, auth, _) => MaterialApp(
           title: 'Salto',
           theme: ThemeData(
-            primarySwatch: Colors.purple,
-            accentColor: Colors.deepOrange,
+            primarySwatch: Colors.blueGrey,
+            accentColor: const Color(0xff2c3e50),
             fontFamily: 'Lato',
             textTheme: TextTheme(
               title: TextStyle(color: Colors.white),
