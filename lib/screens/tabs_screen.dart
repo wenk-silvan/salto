@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:salto/components/base_app_bar.dart';
+import 'package:salto/components/feed.dart';
 import 'package:salto/providers/auth.dart';
+import 'package:salto/providers/content-items.dart';
 import 'package:salto/providers/users.dart';
 import 'package:salto/screens/auth_screen.dart';
 import 'package:salto/screens/feed_screen.dart';
@@ -14,6 +16,7 @@ class TabsScreen extends StatefulWidget {
 }
 
 class _TabsScreenState extends State<TabsScreen> {
+  ContentItems _contentData;
   Users _userData;
   List<Map<String, Object>> _pages;
   int _selectedPageIndex = 0;
@@ -47,12 +50,14 @@ class _TabsScreenState extends State<TabsScreen> {
   Future<void> _initialize(BuildContext ctx) async {
     this.isInit = false;
     this._userData = Provider.of<Users>(ctx, listen: false);
+    this._contentData = Provider.of<ContentItems>(context, listen: false);
     final authData = Provider.of<Auth>(ctx, listen: false);
     try {
       await this._userData.getUsers();
       var didLogIn = this._userData.login(authData.userId);
-      if(!didLogIn) authData.logout();
-    } catch(error) {
+      if (!didLogIn) authData.logout();
+      await _contentData.getContent(_userData.signedInUser);
+    } catch (error) {
       throw error;
     }
   }
@@ -75,8 +80,8 @@ class _TabsScreenState extends State<TabsScreen> {
       future: this.isInit ? this._initialize(context) : null,
       builder: (ctx, snapshot) {
         this._pages = [
-          {'page': FeedScreen(isFavorites: false)},
-          {'page': FeedScreen(isFavorites: true)},
+          {'page': Feed(_contentData.items)},
+          {'page': Feed(_contentData.favItems)},
         ];
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Scaffold(

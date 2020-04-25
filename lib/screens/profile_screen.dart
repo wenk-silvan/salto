@@ -7,6 +7,8 @@ import 'package:salto/providers/content-items.dart';
 import 'package:salto/providers/users.dart';
 import 'package:salto/screens/post_screen.dart';
 
+import 'feed_screen.dart';
+
 class ProfileScreen extends StatefulWidget {
   static const route = '/profile';
   static const _placeholderAvatarUrl =
@@ -24,10 +26,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final args = ModalRoute
-        .of(context)
-        .settings
-        .arguments as dynamic;
+    final args = ModalRoute.of(context).settings.arguments as dynamic;
     final userId = args['userId'];
     final userData = Provider.of<Users>(context);
     final user = userData.findById(userId);
@@ -69,29 +68,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
           Text(
             '${user.firstName} ${user.lastName}',
             style: TextStyle(
-              color: Theme
-                  .of(context)
-                  .textTheme
-                  .headline
-                  .color,
+              color: Theme.of(context).textTheme.headline.color,
               fontSize: 20,
             ),
           ),
           Container(
             padding: EdgeInsets.all(10),
-            height: MediaQuery
-                .of(context)
-                .size
-                .height * 0.08,
+            height: MediaQuery.of(context).size.height * 0.08,
             width: double.infinity,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: <Widget>[
                 ChipIcon(
                     Icons.star,
-                    '${user.followers.length} ${user.followers.length == 1
-                        ? 'Follower'
-                        : 'Followers'}',
+                    '${user.followers.length} ${user.followers.length == 1 ? 'Follower' : 'Followers'}',
                     context),
                 ChipIcon(Icons.home,
                     user.locality.isEmpty ? 'Unknown' : user.locality, context),
@@ -114,10 +104,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             return SingleChildScrollView(
               child: Container(
                 width: double.infinity,
-                height: MediaQuery
-                    .of(context)
-                    .size
-                    .height * 0.36,
+                height: MediaQuery.of(context).size.height * 0.36,
                 child: GridView.builder(
                   padding: const EdgeInsets.symmetric(horizontal: 10),
                   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -127,13 +114,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     mainAxisSpacing: 5,
                   ),
                   itemCount: posts.length,
-                  itemBuilder: (ctx, i) =>
-                      GestureDetector(
-                        onTap: () => Navigator.pushNamed(context, PostScreen.route, arguments: {
-                          'contentItemId': posts[i].id,
+                  itemBuilder: (ctx, i) => GestureDetector(
+                    onTap: () => Navigator.pushNamed(context, FeedScreen.route,
+                        arguments: {
+                          'posts': posts,
+                          'user': user,
                         }),
-                        child: VideoThumbnail(postUrls[i]),
-                      ),
+                    child: VideoThumbnail(postUrls[i]),
+                  ),
                 ),
               ),
             );

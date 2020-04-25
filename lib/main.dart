@@ -8,9 +8,11 @@ import 'package:salto/providers/auth.dart';
 import 'package:salto/providers/comments.dart';
 import 'package:salto/providers/content-items.dart';
 import 'package:salto/providers/media.dart';
+import 'package:salto/providers/player_manager.dart';
 import 'package:salto/providers/users.dart';
 import 'package:salto/screens/camera_screen.dart';
 import 'package:salto/screens/auth_screen.dart';
+import 'package:salto/screens/feed_screen.dart';
 import 'package:salto/screens/profile_screen.dart';
 import 'package:salto/screens/search_screen.dart';
 import 'package:salto/screens/settings_screen.dart';
@@ -86,7 +88,10 @@ class MyApp extends StatelessWidget {
             auth.token,
             previousMedia == null ? [] : previousMedia.media,
           ),
-        )
+        ),
+        ChangeNotifierProvider(
+          create: (BuildContext ctx) => PlayerManager(),
+        ),
       ],
       child: Consumer<Auth>(
         builder: (ctx, auth, _) => MaterialApp(
@@ -114,6 +119,7 @@ class MyApp extends StatelessWidget {
             UploadScreen.route: (ctx) => UploadScreen(this.storage),
             ProfileScreen.route: (ctx) => ProfileScreen(),
             SearchScreen.route: (ctx) => SearchScreen(),
+            FeedScreen.route: (ctx) => FeedScreen(),
             AuthScreen.route: (
               ctx,
             ) =>

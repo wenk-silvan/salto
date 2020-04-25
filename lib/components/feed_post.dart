@@ -55,7 +55,7 @@ class _FeedPostState extends State<FeedPost> {
                 children: <Widget>[
                   CircleAvatarButton(user, Colors.white),
                   Text(
-                    widget.post.title,
+                    "@${user.userName}",
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                 ],
@@ -68,7 +68,7 @@ class _FeedPostState extends State<FeedPost> {
               Padding(
                 padding: EdgeInsets.symmetric(vertical: 0, horizontal: 8.0),
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  mainAxisAlignment: MainAxisAlignment.start,
                   children: <Widget>[
                     IconButton(
                       iconSize: 30,
@@ -87,7 +87,20 @@ class _FeedPostState extends State<FeedPost> {
                             'contentItemId': widget.post.id,
                           }),
                     ),
+                    Spacer(),
+                    Timestamp(widget.post.timestamp),
                   ],
+                ),
+              ),
+              Padding(
+                padding:
+                    EdgeInsets.only(top: 0, bottom: 8.0, left: 8.0, right: 8.0),
+                child: Text(
+                  widget.post.title,
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
               Padding(
@@ -97,7 +110,6 @@ class _FeedPostState extends State<FeedPost> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: <Widget>[
                     Text(widget.post.description),
-                    Timestamp(widget.post.timestamp)
                   ],
                 ),
               ),
