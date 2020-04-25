@@ -15,7 +15,6 @@ import 'package:salto/models/user.dart';
 import 'package:salto/providers/comments.dart';
 import 'package:salto/providers/content-items.dart';
 import 'package:salto/providers/users.dart';
-import 'package:salto/screens/feed_screen.dart';
 
 class PostScreen extends StatefulWidget {
   static const route = '/player';

@@ -12,6 +12,7 @@ import 'package:salto/providers/player_manager.dart';
 import 'package:salto/providers/users.dart';
 import 'package:salto/screens/camera_screen.dart';
 import 'package:salto/screens/auth_screen.dart';
+import 'package:salto/screens/comment_screen.dart';
 import 'package:salto/screens/feed_screen.dart';
 import 'package:salto/screens/profile_screen.dart';
 import 'package:salto/screens/search_screen.dart';
@@ -120,6 +121,7 @@ class MyApp extends StatelessWidget {
             ProfileScreen.route: (ctx) => ProfileScreen(),
             SearchScreen.route: (ctx) => SearchScreen(),
             FeedScreen.route: (ctx) => FeedScreen(),
+            CommentScreen.route: (ctx) => CommentScreen(),
             AuthScreen.route: (
               ctx,
             ) =>
