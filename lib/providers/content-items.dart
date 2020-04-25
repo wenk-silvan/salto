@@ -87,11 +87,10 @@ class ContentItems with ChangeNotifier {
     return this._items.firstWhere((i) => i.id == id, orElse: null);
   }
 
-  List<String> getContentByUserId(String userId) {
+  List<ContentItem> getContentByUserId(String userId) {
     return this
         ._items
         .where((i) => i.userId == userId)
-        .map((i) => i.mediaUrl)
         .toList();
   }
 

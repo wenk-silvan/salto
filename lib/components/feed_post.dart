@@ -1,19 +1,14 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'package:salto/components/chip_icon.dart';
 import 'package:salto/components/circle_avatar_button.dart';
 import 'package:salto/components/file_video_player.dart';
 import 'package:salto/components/timestamp.dart';
-import 'package:salto/models/comment.dart';
 import 'package:salto/models/content-item.dart';
 import 'package:salto/models/user.dart';
 import 'package:salto/providers/content-items.dart';
 import 'package:salto/providers/users.dart';
-import 'package:salto/screens/profile_screen.dart';
-import 'package:salto/components/comment_widget.dart';
 import 'package:salto/screens/post_screen.dart';
 
 class FeedPost extends StatefulWidget {
@@ -47,69 +42,68 @@ class _FeedPostState extends State<FeedPost> {
           ContentItem.isFavorite(widget.post, this._signedInUser.id);
     }
     return Center(
-      child: Card(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Row(
-              children: <Widget>[
-                CircleAvatarButton(user, Colors.white),
-                Text(
-                  widget.post.title,
-                  style: TextStyle(fontWeight: FontWeight.bold),
+      child: InkWell(
+        onTap: () => Navigator.pushNamed(context, PostScreen.route, arguments: {
+          'contentItemId': widget.post.id,
+        }),
+        //child: Image.network(widget.post.mediaUrl, fit: BoxFit.cover),
+        child: Card(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Row(
+                children: <Widget>[
+                  CircleAvatarButton(user, Colors.white),
+                  Text(
+                    widget.post.title,
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+              Container(
+                  width: double.infinity,
+                  child: widget.post.mediaUrl.isNotEmpty
+                      ? FileVideoPlayer(true, File(''), widget.post.mediaUrl)
+                      : Text("")),
+              Padding(
+                padding: EdgeInsets.symmetric(vertical: 0, horizontal: 8.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: <Widget>[
+                    IconButton(
+                      iconSize: 30,
+                      color: Colors.red,
+                      icon: Icon(this._isFavorite
+                          ? Icons.favorite
+                          : Icons.favorite_border),
+                      onPressed: () => this._toggleFavorite(),
+                    ),
+                    IconButton(
+                      iconSize: 30,
+                      icon: Icon(Icons.comment),
+                      onPressed: () => Navigator.pushNamed(
+                          context, PostScreen.route,
+                          arguments: {
+                            'contentItemId': widget.post.id,
+                          }),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-            Container(
-              width: double.infinity,
-              child: InkWell(
-                onTap: () =>
-                    Navigator.pushNamed(context, PostScreen.route, arguments: {
-                  'contentItemId': widget.post.id,
-                }),
-                //child: Image.network(widget.post.mediaUrl, fit: BoxFit.cover),
-                child: widget.post.mediaUrl.isNotEmpty ? FileVideoPlayer(true, File(''), widget.post.mediaUrl) : Text(""),
-                //child: Text("Video goes here.")
               ),
-            ),
-            Padding(
-              padding: EdgeInsets.symmetric(vertical: 0, horizontal: 8.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: <Widget>[
-                  IconButton(
-                    iconSize: 30,
-                    color: Colors.red,
-                    icon: Icon(this._isFavorite
-                        ? Icons.favorite
-                        : Icons.favorite_border),
-                    onPressed: () => this._toggleFavorite(),
-                  ),
-                  IconButton(
-                    iconSize: 30,
-                    icon: Icon(Icons.comment),
-                    onPressed: () => Navigator.pushNamed(
-                        context, PostScreen.route,
-                        arguments: {
-                          'contentItemId': widget.post.id,
-                        }),
-                  ),
-                ],
+              Padding(
+                padding:
+                    EdgeInsets.only(top: 0, bottom: 8.0, left: 8.0, right: 8.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    Text(widget.post.description),
+                    Timestamp(widget.post.timestamp)
+                  ],
+                ),
               ),
-            ),
-            Padding(
-              padding:
-                  EdgeInsets.only(top: 0, bottom: 8.0, left: 8.0, right: 8.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: <Widget>[
-                  Text(widget.post.description),
-                  Timestamp(widget.post.timestamp)
-                ],
-              ),
-            ),
-          ],
-        ), //
+            ],
+          ), //
+        ),
       ),
     );
   }

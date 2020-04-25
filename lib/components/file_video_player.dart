@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:salto/providers/player_manager.dart';
 import 'package:video_player/video_player.dart';
 
 class FileVideoPlayer extends StatefulWidget {
@@ -22,15 +24,16 @@ class _FileVideoPlayerState extends State<FileVideoPlayer> {
 
   @override
   void initState() {
-    /*if (widget.networkUri.isNotEmpty) {
+    if (widget.networkUri.isNotEmpty) {
       _controller = VideoPlayerController.network(widget.networkUri);
     } else {
-    }*/
-    if (widget.file.path.isNotEmpty) {
+      _controller = VideoPlayerController.file(widget.file);
+    }
+    /*if (widget.file.path.isNotEmpty) {
       _controller = VideoPlayerController.file(widget.file);
     } else {
       _controller = VideoPlayerController.asset("assets/videos/SampleVideo_1280x720_5mb.mp4");
-    }
+    }*/
     _controller.setLooping(widget.loop);
     _initializeVideoPlayerFuture = _controller.initialize();
     super.initState();
@@ -60,6 +63,7 @@ class _FileVideoPlayerState extends State<FileVideoPlayer> {
 
   @override
   Widget build(BuildContext context) {
+    final playerManager = Provider.of<PlayerManager>(context);
     return ConstrainedBox(
       constraints: new BoxConstraints(
           maxHeight: MediaQuery.of(context).size.height * 0.5),

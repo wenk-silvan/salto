@@ -206,40 +206,6 @@ class CameraScreenState extends State<CameraScreen> {
     }
   }
 
-  /// Display the thumbnail of the captured image or video.
-  /*Widget _thumbnailWidget() {
-    return Expanded(
-      child: Align(
-        alignment: Alignment.centerRight,
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            videoController == null && imagePath == null
-                ? Container()
-                : SizedBox(
-              child: (videoController == null)
-                  ? Image.file(File(imagePath))
-                  : Container(
-                child: Center(
-                  child: AspectRatio(
-                      aspectRatio:
-                      videoController.value.size != null
-                          ? videoController.value.aspectRatio
-                          : 1.0,
-                      child: VideoPlayer(videoController)),
-                ),
-                decoration: BoxDecoration(
-                    border: Border.all(color: Colors.pink)),
-              ),
-              width: 64.0,
-              height: 64.0,
-            ),
-          ],
-        ),
-      ),
-    );
-  }*/
-
   Widget _captureControlRowWidget() {
     return Padding(
       padding: const EdgeInsets.only(bottom: 20.0),
