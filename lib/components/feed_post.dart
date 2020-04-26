@@ -15,6 +15,8 @@ import 'package:salto/providers/users.dart';
 import 'package:salto/screens/comment_screen.dart';
 import 'package:salto/screens/post_screen.dart';
 
+import 'comment_widget.dart';
+
 class FeedPost extends StatefulWidget {
   final ContentItem post;
 
@@ -25,10 +27,12 @@ class FeedPost extends StatefulWidget {
 }
 
 class _FeedPostState extends State<FeedPost> {
+  List<Comment> _comments = [];
   bool _isInit = true;
   bool _isFavorite;
-  User _signedInUser;
+  bool _showComments = false;
   User _postUser;
+  User _signedInUser;
 
   Future<void> _toggleFavorite() async {
     await Provider.of<ContentItems>(context)
@@ -47,35 +51,34 @@ class _FeedPostState extends State<FeedPost> {
           ContentItem.isFavorite(widget.post, this._signedInUser.id);
     }
     return Center(
-      child: InkWell(
-        onTap: () => Navigator.pushNamed(context, PostScreen.route, arguments: {
-          'contentItemId': widget.post.id,
-        }),
-        //child: Image.network(widget.post.mediaUrl, fit: BoxFit.cover),
-        child: Card(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              _headerRowBuilder(),
-              _videoPlayerBuilder(),
-              _actionRowBuilder(),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                child: Text(
-                  widget.post.title,
-                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-                ),
+      child: Card(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            _headerRowBuilder(),
+            _videoPlayerBuilder(),
+            _actionRowBuilder(),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+              child: Text(
+                widget.post.title,
+                style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
               ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                child: Text(widget.post.description),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+              child: Text(widget.post.description),
+            ),
+            SizedBox(height: _showComments ? 15 : 0),
+            _showComments ? _commentsBuilder() : SizedBox(height: 0),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+              child: AddComment(
+                postId: widget.post.id,
+                userId: _signedInUser.id,
               ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: AddComment(postId: widget.post.id, userId: _postUser.id),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -94,15 +97,66 @@ class _FeedPostState extends State<FeedPost> {
         IconButton(
           iconSize: 30,
           icon: Icon(Icons.comment),
-          onPressed: () =>
-              Navigator.pushNamed(context, CommentScreen.route, arguments: {
-            'postId': widget.post.id,
-            'user': this._postUser,
-          }),
+          onPressed: () => setState(() => _showComments = !_showComments),
         ),
         Spacer(),
         Timestamp(widget.post.timestamp),
       ],
+    );
+  }
+
+  Widget _commentsBuilder() {
+    return _comments.length < 1
+        ? FutureBuilder(
+            future: Provider.of<Comments>(context, listen: false)
+                .getComments(widget.post.id),
+            builder: (ctx, authResultSnapshot) {
+              if (authResultSnapshot.connectionState == ConnectionState.done) {
+                _comments = Provider.of<Comments>(context, listen: true).items;
+                return _commentsListBuilder();
+              } else {
+                return Center(child: CircularProgressIndicator());
+              }
+            })
+        : _commentsListBuilder();
+  }
+
+  Widget _commentsListBuilder() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          _comments.length < 1
+              ? Text('No comments available.')
+              : Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: _comments.length < 4
+                      ? _comments.map((Comment c) => CommentWidget(c)).toList()
+                      : _comments
+                          .getRange(_comments.length - 3, _comments.length)
+                          .map((Comment c) => CommentWidget(c))
+                          .toList()),
+          if (_comments.length > 3)
+            GestureDetector(
+              child: Row(
+                children: <Widget>[
+                  Text(
+                    'more',
+                    style: TextStyle(color: Theme.of(context).accentColor),
+                  ),
+                ],
+              ),
+              onTap: () => Navigator.of(context)
+                  .pushNamed(CommentScreen.route, arguments: {
+                'postId': widget.post.id,
+                'postUser': _postUser,
+                'signedInUser': _signedInUser,
+                'comments': _comments,
+              }),
+            ),
+        ],
+      ),
     );
   }
 

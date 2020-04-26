@@ -16,7 +16,7 @@ class AddComment extends StatelessWidget {
     return TextField(
       controller: _input,
       style: TextStyle(fontSize: 15),
-      onSubmitted: (_) => this._submitComment,
+      onSubmitted: (_) => this._submitComment(context),
       decoration: new InputDecoration(
           hintText: 'Add comment...',
           suffixIcon: IconButton(

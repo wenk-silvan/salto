@@ -24,16 +24,16 @@ class _FileVideoPlayerState extends State<FileVideoPlayer> {
 
   @override
   void initState() {
-    if (widget.networkUri.isNotEmpty) {
+    /*if (widget.networkUri.isNotEmpty) {
       _controller = VideoPlayerController.network(widget.networkUri);
     } else {
       _controller = VideoPlayerController.file(widget.file);
-    }
-    /*if (widget.file.path.isNotEmpty) {
+    }*/
+    if (widget.file.path.isNotEmpty) {
       _controller = VideoPlayerController.file(widget.file);
     } else {
       _controller = VideoPlayerController.asset("assets/videos/SampleVideo_1280x720_5mb.mp4");
-    }*/
+    }
     _controller.setLooping(widget.loop);
     _initializeVideoPlayerFuture = _controller.initialize();
     super.initState();

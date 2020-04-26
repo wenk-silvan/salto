@@ -22,6 +22,7 @@ class Comments with ChangeNotifier {
   Future<void> getComments(String contentItemId) async {
     try {
       if (this.authToken == null) return;
+      print("getComments()");
       final response =
       await http.get('$url/comments/$contentItemId.json$authString');
       final List<Comment> loadedComments = [];
@@ -48,16 +49,15 @@ class Comments with ChangeNotifier {
   Future<void> addComment(Comment comment, String contentItemId) async {
     try {
       if (contentItemId == null || contentItemId.isEmpty) return;
+      this._items.add(Comment.copy(comment, ''));
+      this.notifyListeners();
       final body = Comment.toJson(comment);
       final response =
       await http.post('$url/comments/$contentItemId.json$authString', body: body);
-      this._items.add(Comment.copy(comment, json.decode(response.body)['name']));
-
       if (response.statusCode >= 400 || response.statusCode >= 400) {
         throw new HttpException('Failed to post comment.');
       }
       print("Added comment to post with id: $contentItemId.");
-      this.notifyListeners();
     } catch (error) {
       throw error;
     }
