@@ -29,7 +29,7 @@ class CommentScreen extends StatelessWidget {
             future: Provider.of<Comments>(context).getComments(postId),
             builder: (ctx, authResultSnapshot) {
               if (authResultSnapshot.connectionState == ConnectionState.done) {
-                _comments = Provider.of<Comments>(context, listen: true).items;
+                _comments = Provider.of<Comments>(context).items;
                 return SingleChildScrollView(
                   child: Padding(
                     padding: const EdgeInsets.all(8.0),
@@ -60,7 +60,7 @@ class CommentScreen extends StatelessWidget {
   }
 
   Widget _commentRowBuilder(BuildContext ctx, final Comment comment) {
-    final user = Provider.of<Users>(ctx).findById(comment.userId);
+    final user = Provider.of<Users>(ctx, listen: false).findById(comment.userId);
     return Padding(
       padding: const EdgeInsets.only(bottom: 6.0),
       child: Container(
