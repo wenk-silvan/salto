@@ -19,42 +19,44 @@ class CommentScreen extends StatelessWidget {
     final User postUser = args['postUser'];
     final User signedInUser = args['signedInUser'];
     return Scaffold(
-      appBar: AppBar(
-        title: Text('@${postUser.userName}'),
-        actions: <Widget>[
-          CircleAvatarButton(postUser, Theme.of(context).primaryColor)
-        ],
-      ),
-      body:
-      FutureBuilder(
-          future: Provider.of<Comments>(context)
-              .getComments(postId),
-          builder: (ctx, authResultSnapshot) {
-            if (authResultSnapshot.connectionState == ConnectionState.done) {
-              _comments = Provider.of<Comments>(context, listen: true).items;
-              return SingleChildScrollView(
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: this
-                            ._comments
-                            .map((Comment c) => _commentRowBuilder(context, c))
-                            .toList(),
-                      ),
-                      AddComment(userId: signedInUser.id, postId: postId),
-                    ],
+        appBar: AppBar(
+          title: Text('@${postUser.userName}'),
+          actions: <Widget>[
+            CircleAvatarButton(postUser, Theme.of(context).primaryColor)
+          ],
+        ),
+        body: FutureBuilder(
+            future: Provider.of<Comments>(context).getComments(postId),
+            builder: (ctx, authResultSnapshot) {
+              if (authResultSnapshot.connectionState == ConnectionState.done) {
+                _comments = Provider.of<Comments>(context, listen: true).items;
+                return SingleChildScrollView(
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: this
+                              ._comments
+                              .map(
+                                  (Comment c) => _commentRowBuilder(context, c))
+                              .toList(),
+                        ),
+                        AddComment(
+                          userId: signedInUser.id,
+                          postId: postId,
+                          hasLine: true,
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              );
-            } else {
-              return Center(child: CircularProgressIndicator());
-            }
-          })
-    );
+                );
+              } else {
+                return Center(child: CircularProgressIndicator());
+              }
+            }));
   }
 
   Widget _commentRowBuilder(BuildContext ctx, final Comment comment) {

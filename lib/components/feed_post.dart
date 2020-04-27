@@ -4,21 +4,25 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:salto/components/add_comment.dart';
 import 'package:salto/components/circle_avatar_button.dart';
+import 'package:salto/components/dark_dialog.dart';
 import 'package:salto/components/file_video_player.dart';
 import 'package:salto/components/timestamp.dart';
 import 'package:salto/models/comment.dart';
 import 'package:salto/models/content-item.dart';
+import 'package:salto/models/http_exception.dart';
 import 'package:salto/models/user.dart';
 import 'package:salto/providers/comments.dart';
 import 'package:salto/providers/content-items.dart';
 import 'package:salto/providers/users.dart';
 import 'package:salto/screens/comment_screen.dart';
 import 'package:salto/screens/post_screen.dart';
+import 'package:salto/screens/profile_screen.dart';
 
 import 'comment_widget.dart';
+import 'confirm_dialog.dart';
 
 class FeedPost extends StatefulWidget {
-  final ContentItem post;
+  ContentItem post;
 
   FeedPost(this.post);
 
@@ -33,22 +37,25 @@ class _FeedPostState extends State<FeedPost> {
   bool _showComments = false;
   User _postUser;
   User _signedInUser;
-
-  Future<void> _toggleFavorite() async {
-    await Provider.of<ContentItems>(context)
-        .toggleFavorites(widget.post, this._signedInUser.id);
-    setState(() {
-      this._isFavorite = !this._isFavorite;
-    });
-  }
+  String _updatingTitle;
+  String _updatingDescription;
+  final _form = GlobalKey<FormState>();
+  final _titleFocusNode = FocusNode();
+  final _descriptionFocusNode = FocusNode();
+  static const List<String> menuEntries = <String>[
+    'Edit',
+    'Remove',
+  ];
 
   @override
   Widget build(BuildContext context) {
-    this._signedInUser = Provider.of<Users>(context).signedInUser;
-    this._postUser = Provider.of<Users>(context).findById(widget.post.userId);
-    if (this._isInit) {
-      this._isFavorite =
-          ContentItem.isFavorite(widget.post, this._signedInUser.id);
+    _updatingTitle = widget.post.title;
+    _updatingDescription = widget.post.description;
+    _signedInUser = Provider.of<Users>(context).signedInUser;
+    _postUser = Provider.of<Users>(context).findById(widget.post.userId);
+    if (_isInit) {
+      _isFavorite =
+          ContentItem.isFavorite(widget.post, _signedInUser.id);
     }
     return Center(
       child: Card(
@@ -76,6 +83,7 @@ class _FeedPostState extends State<FeedPost> {
               child: AddComment(
                 postId: widget.post.id,
                 userId: _signedInUser.id,
+                hasLine: false,
               ),
             ),
           ],
@@ -101,6 +109,7 @@ class _FeedPostState extends State<FeedPost> {
         ),
         Spacer(),
         Timestamp(widget.post.timestamp),
+        SizedBox(width: 5),
       ],
     );
   }
@@ -138,8 +147,9 @@ class _FeedPostState extends State<FeedPost> {
                           .map((Comment c) => CommentWidget(c))
                           .toList()),
           if (_comments.length > 3)
-            GestureDetector(
+            InkWell(
               child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
                   Text(
                     'more',
@@ -161,14 +171,34 @@ class _FeedPostState extends State<FeedPost> {
   }
 
   Widget _headerRowBuilder() {
-    return Row(
-      children: <Widget>[
-        CircleAvatarButton(_postUser, Colors.white),
-        Text(
-          "@${_postUser.userName}",
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-      ],
+    return InkWell(
+      onTap: () => Navigator.of(context).pushNamed(
+        ProfileScreen.route,
+        arguments: {
+          'userId': _postUser.id,
+        },
+      ),
+      child: Row(
+        children: <Widget>[
+          CircleAvatarButton(_postUser, Colors.white),
+          Text(
+            "@${_postUser.userName}",
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          Spacer(),
+          _postUser.id == _signedInUser.id
+              ? PopupMenuButton(
+                  onSelected: _choiceAction,
+                  itemBuilder: (BuildContext ctx) {
+                    return menuEntries
+                        .map((entry) => PopupMenuItem<String>(
+                            value: entry, child: Text(entry)))
+                        .toList();
+                  },
+                )
+              : SizedBox(height: 0),
+        ],
+      ),
     );
   }
 
@@ -179,5 +209,134 @@ class _FeedPostState extends State<FeedPost> {
           ? FileVideoPlayer(true, File(''), widget.post.mediaUrl)
           : Text(""),
     );
+  }
+
+  void _choiceAction(String choice) {
+    if (choice == 'Remove') {
+      _deletePostDialog();
+    } else if (choice == 'Edit') {
+      _editFormDialog();
+    }
+  }
+
+  void _editFormDialog() {
+    showDialog(
+        context: context,
+        builder: (BuildContext ctx) {
+          final content = Form(
+            key: _form,
+            child: Container(
+              height: 180,
+              child: Column(
+                children: <Widget>[
+                  TextFormField(
+                    initialValue: widget.post.title,
+                    decoration: InputDecoration(labelText: 'Title'),
+                    textInputAction: TextInputAction.done,
+                    focusNode: _titleFocusNode,
+                    onFieldSubmitted: (_) => FocusScope.of(context)
+                        .requestFocus(_descriptionFocusNode),
+                    onSaved: (value) => _updatingTitle = value,
+                  ),
+                  TextFormField(
+                    initialValue: widget.post.description,
+                    decoration: InputDecoration(labelText: 'Description'),
+                    textInputAction: TextInputAction.done,
+                    focusNode: _descriptionFocusNode,
+                    onFieldSubmitted: (_) => _saveForm(),
+                    onSaved: (value) => _updatingDescription = value,
+                  ),
+                  Spacer(),
+                  Row(
+                    children: <Widget>[
+                      FlatButton(
+                        child: Text('Cancel'),
+                        onPressed: () => Navigator.of(context).pop(),
+                      ),
+                      Spacer(),
+                      FlatButton(
+                        child: Text('Update'),
+                        onPressed: _saveForm,
+                      ),
+                    ],
+                  )
+                ],
+              ),
+            ),
+          );
+          return DarkDialog(
+            content: content,
+            statement: 'Update post',
+            brightMode: true,
+          );
+        });
+  }
+
+  void _saveForm() async {
+    _form.currentState.save();
+    try {
+      if (_updatingTitle != widget.post.title) {
+        await Provider.of<ContentItems>(context, listen: false)
+            .updatePost(
+            'title', _updatingTitle, widget.post.id);
+        setState(() {
+          widget.post = ContentItem(
+            id: widget.post.id,
+            title: _updatingTitle,
+            userId: widget.post.userId,
+            comments: widget.post.comments,
+            likes: widget.post.likes,
+            mediaUrl: widget.post.mediaUrl,
+            timestamp: widget.post.timestamp,
+            description: widget.post.description,
+          );
+        });
+      }
+      if (_updatingDescription != widget.post.description) {
+        await Provider.of<ContentItems>(context, listen: false)
+            .updatePost('description', _updatingDescription,
+            widget.post.id);
+        setState(() {
+          widget.post = ContentItem(
+            id: widget.post.id,
+            title: widget.post.title,
+            userId: widget.post.userId,
+            comments: widget.post.comments,
+            likes: widget.post.likes,
+            mediaUrl: widget.post.mediaUrl,
+            timestamp: widget.post.timestamp,
+            description: _updatingDescription,
+          );
+        });
+      }
+    } on HttpException catch (error) {
+      Scaffold.of(context).showSnackBar(SnackBar(
+          content: Text('Something went wrong.')
+      ));
+    }
+    Navigator.of(context).pop();
+  }
+
+  void _deletePostDialog() {
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return ConfirmDialog(
+            callback: () async {
+              await Provider.of<ContentItems>(context)
+                  .deleteContent(widget.post.id);
+              Navigator.pop(context);
+            },
+            statement: 'Remove this post?',
+          );
+        });
+  }
+
+  Future<void> _toggleFavorite() async {
+    await Provider.of<ContentItems>(context)
+        .toggleFavorites(widget.post, this._signedInUser.id);
+    setState(() {
+      this._isFavorite = !this._isFavorite;
+    });
   }
 }

@@ -50,7 +50,7 @@ class _TabsScreenState extends State<TabsScreen> {
   Future<void> _initialize(BuildContext ctx) async {
     this.isInit = false;
     this._userData = Provider.of<Users>(ctx, listen: false);
-    this._contentData = Provider.of<ContentItems>(context, listen: false);
+    this._contentData = Provider.of<ContentItems>(context);
     final authData = Provider.of<Auth>(ctx, listen: false);
     try {
       await this._userData.getUsers();
@@ -77,7 +77,7 @@ class _TabsScreenState extends State<TabsScreen> {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
-      future: this.isInit ? this._initialize(context) : null,
+      future: this._initialize(context),
       builder: (ctx, snapshot) {
         this._pages = [
           {'page': Feed(_contentData.items)},

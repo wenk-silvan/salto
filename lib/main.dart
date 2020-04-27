@@ -67,6 +67,7 @@ class MyApp extends StatelessWidget {
           update: (ctx, auth, previousItems) => ContentItems(
             auth.token,
             previousItems == null ? [] : previousItems.items,
+            storage,
           ),
         ),
         ChangeNotifierProxyProvider<Auth, Users>(
@@ -122,10 +123,7 @@ class MyApp extends StatelessWidget {
             SearchScreen.route: (ctx) => SearchScreen(),
             FeedScreen.route: (ctx) => FeedScreen(),
             CommentScreen.route: (ctx) => CommentScreen(),
-            AuthScreen.route: (
-              ctx,
-            ) =>
-                AuthScreen(),
+            AuthScreen.route: (ctx) => AuthScreen(),
             PostScreen.route: (ctx) => PostScreen(storage: this.storage),
             CameraScreen.route: (ctx) => CameraScreen(cameras: this.cameras),
           },

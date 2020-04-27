@@ -23,11 +23,12 @@ class BaseAppBar extends StatelessWidget implements PreferredSizeWidget {
           onPressed: () => Navigator.of(context).pushNamed(SearchScreen.route),
         ),
         IconButton(
-            icon: Icon(Icons.add),
-            onPressed: () =>
-                showDialog(
-                    context: context,
-                    builder: (BuildContext ctx) => AddPostDialog())),
+          icon: Icon(Icons.add),
+          onPressed: () => showDialog(
+              context: context,
+              builder: (BuildContext ctx) => AddPostDialog(
+                  statement: 'How would you like to upload a video?')),
+        ),
         IconButton(
             icon: Icon(Icons.settings),
             onPressed: () =>

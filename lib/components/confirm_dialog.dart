@@ -10,25 +10,26 @@ class ConfirmDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-        backgroundColor: Colors.black,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        elevation: 10,
-        title: Text(
-          this.statement,
-          style: TextStyle(fontSize: 20),
-        ),
-        titleTextStyle: TextStyle(color: textColor),
-        content: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: <Widget>[
-            FlatButton(
-                child: Text('Cancel', style: TextStyle(color: textColor)),
-                onPressed: () => Navigator.of(context).pop()),
-            FlatButton(
-              child: const Text('Ok', style: TextStyle(color: textColor)),
-              onPressed: this.callback,
-            ),
-          ],
-        ));
+      backgroundColor: Colors.black,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      elevation: 10,
+      title: Text(
+        this.statement,
+        style: TextStyle(fontSize: 20),
+      ),
+      titleTextStyle: TextStyle(color: textColor),
+      content: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: <Widget>[
+          FlatButton(
+              child: Text('Cancel', style: TextStyle(color: textColor)),
+              onPressed: () => Navigator.of(context).pop()),
+          FlatButton(
+            child: const Text('Ok', style: TextStyle(color: textColor)),
+            onPressed: this.callback,
+          ),
+        ],
+      ),
+    );
   }
 }

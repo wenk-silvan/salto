@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:salto/models/http_exception.dart';
 import 'package:salto/models/user.dart';
@@ -13,8 +14,9 @@ class ContentItems with ChangeNotifier {
   final String authToken;
   List<String> _favoriteUserIds = [];
   List<ContentItem> _items = [];
+  final FirebaseStorage storage;
 
-  ContentItems(this.authToken, this._items) {
+  ContentItems(this.authToken, this._items, this.storage) {
     this.authString = '?auth=$authToken';
   }
 
@@ -31,7 +33,7 @@ class ContentItems with ChangeNotifier {
     final response =
         await http.post('$url/content.json$authString', body: body);
     final contentItemId = json.decode(response.body)['name'];
-    this.items.add(ContentItem.copy(item, contentItemId));
+    this.items.insert(0, ContentItem.copy(item, contentItemId));
     this.notifyListeners();
     return contentItemId;
   }
@@ -53,9 +55,12 @@ class ContentItems with ChangeNotifier {
   Future<void> deleteContent(String postId) async {
     try {
       final response = await http.delete('$url/content/$postId.json$authString');
+      await this.storage.ref().child('videos').child('$postId.mp4').delete();
       if (response.statusCode >= 400) {
         throw HttpException("Error while deleting post.");
       }
+      this._items.removeWhere((i) => i.id == postId);
+      this.notifyListeners();
     } catch (error) {
       print(error);
       throw HttpException("Error while deleting post.");
@@ -80,7 +85,6 @@ class ContentItems with ChangeNotifier {
     loadedContent.sort((a, b) => b.timestamp.compareTo(a.timestamp));
     this._items = loadedContent.toList();
     print("Loaded content from database.");
-    this.notifyListeners();
   }
 
   ContentItem getContentById(String id) {
@@ -130,10 +134,11 @@ class ContentItems with ChangeNotifier {
     });
     try {
       final response =
-          await http.patch('$url/content/$postId.json$authString', body: body);
+      await http.patch('$url/content/$postId.json$authString', body: body);
       return response.statusCode;
     } catch (error) {
-      throw error;
+      print(error);
+      throw HttpException("Failed to update post");
     }
   }
 }

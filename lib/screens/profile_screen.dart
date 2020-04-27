@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:salto/components/chip_icon.dart';
 import 'package:salto/components/video_thumbnail.dart';
+import 'package:salto/models/user.dart';
 import 'package:salto/providers/auth.dart';
 import 'package:salto/providers/content-items.dart';
 import 'package:salto/providers/users.dart';
-import 'package:salto/screens/post_screen.dart';
 
 import 'feed_screen.dart';
 
@@ -19,6 +19,10 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
+  User _user;
+  Users _userData;
+  bool _isMe;
+
   void _logout(BuildContext ctx) {
     Provider.of<Auth>(ctx).logout();
     Navigator.pop(ctx);
@@ -27,106 +31,127 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final args = ModalRoute.of(context).settings.arguments as dynamic;
-    final userId = args['userId'];
-    final userData = Provider.of<Users>(context);
-    final user = userData.findById(userId);
-    final isMe = userData.signedInUser.id == userId;
+    _userData = Provider.of<Users>(context, listen: false);
+    _user = _userData.findById(args['userId']);
+    _isMe = _userData.signedInUser.id == _user.id;
     return Scaffold(
-      appBar: AppBar(
-        title: Text(user.userName),
-        actions: <Widget>[
-          if (isMe)
-            FlatButton(
-              onPressed: () => this._logout(context),
-              child: Text(
-                'LOGOUT',
-                style: TextStyle(color: Colors.white),
-              ),
-            )
-          else
-            IconButton(
-              onPressed: () => userData.toggleFollowingStatus(user),
-              color: Colors.white,
-              icon: Icon(
-                  userData.follows(userId) ? Icons.star : Icons.star_border),
-            )
-        ],
-      ),
+      appBar: _appBarBuilder(),
       body: Column(
         children: <Widget>[
-          Expanded(
-            child: Container(
-              width: double.infinity,
-              child: Image.network(
-                  user.avatarUrl != null && user.avatarUrl.isNotEmpty
-                      ? user.avatarUrl
-                      : ProfileScreen._placeholderAvatarUrl,
-                  fit: BoxFit.cover),
-            ),
-          ),
+          _profilePictureBuilder(),
           SizedBox(height: 10),
-          Text(
-            '${user.firstName} ${user.lastName}',
-            style: TextStyle(
-              color: Theme.of(context).textTheme.headline.color,
-              fontSize: 20,
-            ),
-          ),
-          Container(
-            padding: EdgeInsets.all(10),
-            height: MediaQuery.of(context).size.height * 0.08,
-            width: double.infinity,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: <Widget>[
-                ChipIcon(
-                    Icons.star,
-                    '${user.followers.length} ${user.followers.length == 1 ? 'Follower' : 'Followers'}',
-                    context),
-                ChipIcon(Icons.home,
-                    user.locality.isEmpty ? 'Unknown' : user.locality, context),
-              ],
-            ),
-          ),
-          Container(
-            padding: EdgeInsets.symmetric(horizontal: 10),
-            width: double.infinity,
-            child: Text(
-              user.description,
-              textAlign: TextAlign.center,
-              softWrap: true,
-            ),
-          ),
+          _profileNameBuilder(),
+          _profileDetailsBuilder(),
+          _profileDescriptionBuilder(),
           SizedBox(height: 10),
-          Consumer<ContentItems>(builder: (ctx, content, _) {
-            final posts = content.getContentByUserId(userId);
-            final postUrls = posts.map((p) => p.mediaUrl).toList();
-            return SingleChildScrollView(
-              child: Container(
-                width: double.infinity,
-                height: MediaQuery.of(context).size.height * 0.36,
-                child: GridView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 10),
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 3,
-                    childAspectRatio: 4 / 3,
-                    crossAxisSpacing: 5,
-                    mainAxisSpacing: 5,
-                  ),
-                  itemCount: posts.length,
-                  itemBuilder: (ctx, i) => GestureDetector(
-                    onTap: () => Navigator.pushNamed(context, FeedScreen.route,
-                        arguments: {
-                          'posts': posts,
-                          'user': user,
-                        }),
-                    child: VideoThumbnail(postUrls[i]),
-                  ),
-                ),
-              ),
-            );
-          })
+          _postPreviewBuilder(),
         ],
+      ),
+    );
+  }
+
+  AppBar _appBarBuilder() {
+    return AppBar(
+      title: Text(_user.userName),
+      actions: <Widget>[
+        if (_isMe)
+          FlatButton(
+            onPressed: () => this._logout(context),
+            child: Text(
+              'LOGOUT',
+              style: TextStyle(color: Colors.white),
+            ),
+          )
+        else
+          IconButton(
+            onPressed: () => _userData.toggleFollowingStatus(_user),
+            color: Colors.white,
+            icon: Icon(
+                _userData.follows(_user.id) ? Icons.star : Icons.star_border),
+          )
+      ],
+    );
+  }
+
+  Widget _postPreviewBuilder() {
+    final posts = Provider.of<ContentItems>(context)
+        .getContentByUserId(_user.id);
+    final postUrls = posts.map((p) => p.mediaUrl).toList();
+    return SingleChildScrollView(
+      child: Container(
+        width: double.infinity,
+        height: MediaQuery.of(context).size.height * 0.36,
+        child: GridView.builder(
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 3,
+            childAspectRatio: 4 / 3,
+            crossAxisSpacing: 5,
+            mainAxisSpacing: 5,
+          ),
+          itemCount: posts.length,
+          itemBuilder: (ctx, i) => InkWell(
+            onTap: () =>
+                Navigator.pushNamed(context, FeedScreen.route, arguments: {
+              'user': _user,
+            }),
+            child: VideoThumbnail(postUrls[i]),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _profileDescriptionBuilder() {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 10),
+      width: double.infinity,
+      child: Text(
+        _user.description,
+        textAlign: TextAlign.center,
+        softWrap: true,
+      ),
+    );
+  }
+
+  Widget _profileDetailsBuilder() {
+    return Container(
+      padding: EdgeInsets.all(10),
+      height: MediaQuery.of(context).size.height * 0.08,
+      width: double.infinity,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: <Widget>[
+          ChipIcon(
+              Icons.star,
+              '${_user.followers.length} ${_user.followers.length == 1 ? 'Follower' : 'Followers'}',
+              context),
+          ChipIcon(Icons.home,
+              _user.locality.isEmpty ? 'Unknown' : _user.locality, context),
+        ],
+      ),
+    );
+  }
+
+  Widget _profileNameBuilder() {
+    return Text(
+      '${_user.firstName} ${_user.lastName}',
+      style: TextStyle(
+        color: Theme.of(context).textTheme.headline.color,
+        fontSize: 20,
+      ),
+    );
+  }
+
+  Widget _profilePictureBuilder() {
+    return Expanded(
+      child: Container(
+        width: double.infinity,
+        child: Image.network(
+            _user.avatarUrl != null && _user.avatarUrl.isNotEmpty
+                ? _user.avatarUrl
+                : ProfileScreen._placeholderAvatarUrl,
+            fit: BoxFit.cover),
       ),
     );
   }

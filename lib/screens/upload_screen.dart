@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:salto/components/add_post_dialog.dart';
 import 'package:salto/components/file_video_player.dart';
 import 'package:salto/components/stylish_raised_button.dart';
+import 'package:salto/models/user.dart';
 import 'package:salto/providers/content-items.dart';
 import 'package:salto/providers/users.dart';
 import 'package:salto/screens/camera_screen.dart';
@@ -29,7 +30,8 @@ class _UploadScreenState extends State<UploadScreen> {
   final _titleFocusNode = FocusNode();
   final _descriptionFocusNode = FocusNode();
   String _downloadUrl;
-  File file;
+  User _signedInUser;
+  File _file;
   bool _isLoading = false;
   var _newContentItem = ContentItem(
     title: '',
@@ -68,29 +70,18 @@ class _UploadScreenState extends State<UploadScreen> {
       this._isLoading = true;
     });
     try {
-      if (this.file == null) return;
+      if (_file == null) return;
       final contentItemId =
           await Provider.of<ContentItems>(context, listen: false)
               .addContent(this._newContentItem);
-      await this._uploadFile(this.file, contentItemId);
+      await this._uploadFile(_file, contentItemId);
       await Provider.of<ContentItems>(context, listen: false)
           .updatePost('mediaUrl', this._downloadUrl, contentItemId);
     } catch (error) {
       print(error);
-      await showDialog(
-          context: context,
-          builder: (ctx) => AlertDialog(
-                title: Text('An error occured!'),
-                content: Text('Something went wrong.'),
-                actions: <Widget>[
-                  FlatButton(
-                    child: Text('Okay'),
-                    onPressed: () {
-                      Navigator.of(ctx).pop();
-                    },
-                  )
-                ],
-              ));
+      Scaffold.of(context).showSnackBar(SnackBar(
+          content: Text('Something went wrong.')
+      ));
     }
     setState(() {
       this._isLoading = false;
@@ -108,82 +99,96 @@ class _UploadScreenState extends State<UploadScreen> {
 
   @override
   Widget build(BuildContext context) {
-    var signedInUser = Provider.of<Users>(context).signedInUser;
-    this.file = ModalRoute.of(context).settings.arguments as dynamic;
-    print(this.file.path);
+    _signedInUser = Provider.of<Users>(context, listen: false).signedInUser;
+    _file = ModalRoute.of(context).settings.arguments as dynamic;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Add new Post'),
+        title: const Text('Create new post'),
       ),
       body: this._isLoading
           ? Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Form(
-                  key: this._form,
-                  child: Column(
-                    children: <Widget>[
-                      TextFormField(
-                        decoration: InputDecoration(labelText: 'Title'),
-                        textInputAction: TextInputAction.next,
-                        focusNode: this._titleFocusNode,
-                        onFieldSubmitted: (_) => FocusScope.of(context)
-                            .requestFocus(this._descriptionFocusNode),
-                        onSaved: (value) => this._newContentItem = ContentItem(
-                          title: value,
-                          timestamp: this._newContentItem.timestamp,
-                          id: this._newContentItem.id,
-                          comments: this._newContentItem.comments,
-                          likes: this._newContentItem.likes,
-                          mediaUrl: this._newContentItem.mediaUrl,
-                          userId: signedInUser.id,
-                          description: this._newContentItem.description,
-                        ),
-                        validator: (value) {
-                          if (value.isEmpty) return 'Please enter a title.';
-                          return null;
-                        },
-                      ),
-                      TextFormField(
-                        decoration: InputDecoration(labelText: 'Description'),
-                        textInputAction: TextInputAction.done,
-                        focusNode: this._descriptionFocusNode,
-                        onFieldSubmitted: (_) => this._saveForm(),
-                        onSaved: (value) => this._newContentItem = ContentItem(
-                          title: this._newContentItem.title,
-                          timestamp: this._newContentItem.timestamp,
-                          id: this._newContentItem.id,
-                          comments: this._newContentItem.comments,
-                          likes: this._newContentItem.likes,
-                          mediaUrl: this._newContentItem.mediaUrl,
-                          userId: signedInUser.id,
-                          description: value,
-                        ),
-                      ),
-                      SizedBox(height: 20),
-                      FileVideoPlayer(true, file),
-                      SizedBox(height: 20),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: <Widget>[
-                          StylishRaisedButton(
-                            callback: () => showDialog(
-                                context: context,
-                                builder: (BuildContext ctx) => AddPostDialog()),
-                            child: Icon(Icons.add_a_photo, color: Colors.white),
-                          ),
-                          StylishRaisedButton(
-                            callback: _saveForm,
-                            child: Icon(Icons.file_upload, color: Colors.white),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
+              child: Form(
+                key: this._form,
+                child: Column(
+                  children: <Widget>[
+                    FileVideoPlayer(true, _file),
+                    _titleTextFieldBuilder(),
+                    _descriptionTextFieldBuilder(),
+                    SizedBox(height: 20),
+                    _actionRowBuilder(),
+                  ],
                 ),
               ),
             ),
+    );
+  }
+
+  Widget _actionRowBuilder() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: <Widget>[
+        StylishRaisedButton(
+          callback: () => showDialog(
+            context: context,
+            builder: (BuildContext ctx) => AddPostDialog(statement: 'Select another video.'),
+          ),
+          child: Icon(Icons.add_a_photo, color: Colors.white),
+        ),
+        StylishRaisedButton(
+          callback: _saveForm,
+          child: Icon(Icons.file_upload, color: Colors.white),
+        ),
+      ],
+    );
+  }
+
+  Widget _descriptionTextFieldBuilder() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+      child: TextFormField(
+        decoration: InputDecoration(labelText: 'Description'),
+        textInputAction: TextInputAction.done,
+        focusNode: this._descriptionFocusNode,
+        onFieldSubmitted: (_) => this._saveForm(),
+        onSaved: (value) => this._newContentItem = ContentItem(
+          title: this._newContentItem.title,
+          timestamp: this._newContentItem.timestamp,
+          id: this._newContentItem.id,
+          comments: this._newContentItem.comments,
+          likes: this._newContentItem.likes,
+          mediaUrl: this._newContentItem.mediaUrl,
+          userId: _signedInUser.id,
+          description: value,
+        ),
+      ),
+    );
+  }
+
+  Widget _titleTextFieldBuilder() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+      child: TextFormField(
+        decoration: InputDecoration(labelText: 'Title'),
+        textInputAction: TextInputAction.next,
+        focusNode: this._titleFocusNode,
+        onFieldSubmitted: (_) =>
+            FocusScope.of(context).requestFocus(this._descriptionFocusNode),
+        onSaved: (value) => this._newContentItem = ContentItem(
+          title: value,
+          timestamp: this._newContentItem.timestamp,
+          id: this._newContentItem.id,
+          comments: this._newContentItem.comments,
+          likes: this._newContentItem.likes,
+          mediaUrl: this._newContentItem.mediaUrl,
+          userId: _signedInUser.id,
+          description: this._newContentItem.description,
+        ),
+        validator: (value) {
+          if (value.isEmpty) return 'Please enter a title.';
+          return null;
+        },
+      ),
     );
   }
 }

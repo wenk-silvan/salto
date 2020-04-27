@@ -51,7 +51,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           // return object of type Dialog
           return ConfirmDialog(
             callback: this._deleteAccount,
-            statement: 'Remove your account and all it`s data?',
+            statement: 'Remove your account and all its data?',
           );
         });
   }
