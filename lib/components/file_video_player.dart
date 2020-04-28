@@ -21,6 +21,7 @@ class _FileVideoPlayerState extends State<FileVideoPlayer> {
   VideoPlayerController _controller;
   Future<void> _initializeVideoPlayerFuture;
   bool _iconVisible = false;
+  bool _isMute = false;
 
   @override
   void initState() {
@@ -43,22 +44,6 @@ class _FileVideoPlayerState extends State<FileVideoPlayer> {
   void dispose() {
     _controller.dispose();
     super.dispose();
-  }
-
-  void _toggleVideoState() {
-    setState(() {
-      _iconVisible = true;
-      if (_controller.value.isPlaying) {
-        _controller.pause();
-      } else {
-        _controller.play();
-      }
-      Timer(Duration(seconds: 1), () {
-        setState(() {
-          _iconVisible = false;
-        });
-      });
-    });
   }
 
   @override
@@ -98,7 +83,7 @@ class _FileVideoPlayerState extends State<FileVideoPlayer> {
                               radius: 25,
                               backgroundColor: Colors.white60,
                               child: IconButton(
-                                onPressed: () => this._toggleVideoState(),
+                                onPressed: _toggleVideoState,
                                 icon: Icon(
                                   _controller.value.isPlaying
                                       ? Icons.pause
@@ -108,6 +93,24 @@ class _FileVideoPlayerState extends State<FileVideoPlayer> {
                             ),
                           ),
                         ),
+                        _controller.value.isPlaying ? Positioned(
+                          bottom: 10,
+                          right: 10,
+                          child: CircleAvatar(
+                            radius: 15,
+                            backgroundColor: Colors.white60,
+                            child: IconButton(
+                              padding: EdgeInsets.all(0),
+                              onPressed: _toggleAudioState,
+                              icon: Icon(
+                                _isMute
+                                    ? Icons.volume_off
+                                    : Icons.volume_up,
+                                size: 18,
+                              ),
+                            ),
+                          ),
+                        ) : SizedBox(),
                       ],
                     ),
                   ),
@@ -120,5 +123,30 @@ class _FileVideoPlayerState extends State<FileVideoPlayer> {
         },
       ),
     );
+  }
+
+  void _toggleAudioState() {
+    if (_controller == null) return;
+    setState(() {
+      _isMute = !_isMute;
+      _controller.setVolume(_isMute ? 0 : 1);
+    });
+  }
+
+  void _toggleVideoState() {
+    if (_controller == null) return;
+    setState(() {
+      _iconVisible = true;
+      if (_controller.value.isPlaying) {
+        _controller.pause();
+      } else {
+        _controller.play();
+      }
+      Timer(Duration(seconds: 1), () {
+        setState(() {
+          _iconVisible = false;
+        });
+      });
+    });
   }
 }
