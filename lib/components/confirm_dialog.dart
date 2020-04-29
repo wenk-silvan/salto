@@ -3,9 +3,10 @@ import 'package:flutter/material.dart';
 class ConfirmDialog extends StatelessWidget {
   final String statement;
   final Function callback;
+  final Widget child;
   static const Color textColor = Colors.white;
 
-  ConfirmDialog({this.statement, this.callback});
+  ConfirmDialog({@required this.statement, @required this.callback, this.child});
 
   @override
   Widget build(BuildContext context) {
@@ -18,18 +19,36 @@ class ConfirmDialog extends StatelessWidget {
         style: TextStyle(fontSize: 20),
       ),
       titleTextStyle: TextStyle(color: textColor),
-      content: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: <Widget>[
-          FlatButton(
-              child: Text('Cancel', style: TextStyle(color: textColor)),
-              onPressed: () => Navigator.of(context).pop()),
-          FlatButton(
-            child: const Text('Ok', style: TextStyle(color: textColor)),
-            onPressed: this.callback,
-          ),
-        ],
-      ),
+      content: this.child == null ? _actionButtonBuilder(context) :
+      Container(
+        height: MediaQuery.of(context).size.height * 0.4,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: <Widget>[
+            ConstrainedBox(
+              constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.3),
+              child: this.child,
+            ),
+            _actionButtonBuilder(context),
+          ],
+        ),
+      )
+      ,
+    );
+  }
+
+  Widget _actionButtonBuilder(BuildContext ctx) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: <Widget>[
+        FlatButton(
+            child: Text('Cancel', style: TextStyle(color: textColor)),
+            onPressed: () => Navigator.of(ctx).pop()),
+        FlatButton(
+          child: const Text('Ok', style: TextStyle(color: textColor)),
+          onPressed: this.callback,
+        ),
+      ],
     );
   }
 }

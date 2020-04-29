@@ -25,7 +25,8 @@ class Users with ChangeNotifier {
 
   User findById(String userId) {
     if (this._users == null) return null;
-    return this._users.firstWhere((u) => u.id == userId);
+    final users = this._users.where((u) => u.id == userId).toList();
+    return users.length > 0 ? users.first : null;
   }
 
   Future<void> getUsers() async {
@@ -78,7 +79,7 @@ class Users with ChangeNotifier {
     try {
       final statusCodeFollowers =
           await this._updateFollowers(user.id, followers);
-      final statusCodeFollows = await this._updateFollows(follows);
+      final statusCodeFollows = await this._updateFollows(this.signedInUser.id, follows);
       if (statusCodeFollowers >= 400 || statusCodeFollows >= 400) {
         throw new HttpException('Failed to toggle following status.');
       }
@@ -90,13 +91,80 @@ class Users with ChangeNotifier {
 
   Future<void> removeSignedInUser() async {
     try {
+      this.signedInUser.follows.forEach((userId) {
+        final newFollowers = _users.firstWhere((u) => u.id == userId).followers;
+        newFollowers.remove(signedInUser.id);
+        _updateFollowers(userId, newFollowers);
+      });
+      this.signedInUser.followers.forEach((userId) {
+        final newFollows = _users.firstWhere((u) => u.id == userId).follows;
+        newFollows.remove(signedInUser.id);
+        _updateFollows(userId, newFollows);
+      });
       final response =
       await http.delete('$url/users/${this.signedInUser.id}.json$authString');
       if(response.statusCode >= 400) {
         throw new HttpException('Failed to remove data from user.');
       }
+      notifyListeners();
     } catch (error) {
       throw error;
+    }
+  }
+
+  Future<void> updateUser(User user) async {
+    final body = json.encode({
+      'userName': user.userName,
+      'firstName': user.firstName,
+      'lastName': user.lastName,
+      'description': user.description,
+      'locality': user.locality,
+    });
+    final errorMsg = 'Failed to update profile information.';
+    try {
+      final response =
+      await http.patch('$url/users/${user.id}.json$authString', body: body);
+      if (response.statusCode >= 400 || response.statusCode >= 400) {
+        throw new HttpException(errorMsg);
+      }
+      this._users.removeWhere((u) => user.id == u.id);
+      this._users.add(user);
+      this.notifyListeners();
+    } catch (error) {
+      print(error);
+      throw new HttpException(errorMsg);
+    }
+  }
+
+
+  Future<void> updateAvatarUrl(String avatarUrl, String userId) async {
+    final body = json.encode({'avatarUrl': avatarUrl});
+    final errorMsg = 'Failed to update avatar url. [userId=$userId]';
+    try {
+      final response =
+      await http.patch('$url/users/$userId.json$authString', body: body);
+      if (response.statusCode >= 400 || response.statusCode >= 400) {
+        throw new HttpException(errorMsg);
+      }
+      final user = _users.firstWhere((u) => u.id == userId);
+      _users.removeWhere((u) => u.id == userId);
+      _users.add(User(
+        id: user.id,
+        uuid: user.uuid,
+        userName: user.userName,
+        locality: user.locality,
+        lastName: user.locality,
+        follows: user.follows,
+        firstName: user.firstName,
+        followers: user.followers,
+        age: user.age,
+        description: user.description,
+        avatarUrl: avatarUrl,
+      ));
+      this.notifyListeners();
+    } catch (error) {
+      print(error);
+      throw new HttpException(errorMsg);
     }
   }
 
@@ -116,13 +184,13 @@ class Users with ChangeNotifier {
     }
   }
 
-  Future<int> _updateFollows(List<String> follows) async {
+  Future<int> _updateFollows(String userId, List<String> follows) async {
     final body = json.encode({
       'follows': follows,
     });
     try {
       final response = await http.patch(
-          '$url/users/${this.signedInUser.id}.json$authString',
+          '$url/users/$userId.json$authString',
           body: body);
       return response.statusCode;
     } catch (error) {
@@ -130,3 +198,4 @@ class Users with ChangeNotifier {
     }
   }
 }
+

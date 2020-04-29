@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:salto/models/comment.dart';
 import 'package:http/http.dart' as http;
+import 'package:salto/models/content-item.dart';
 import 'package:salto/models/http_exception.dart';
 
 class Comments with ChangeNotifier {
@@ -24,7 +25,7 @@ class Comments with ChangeNotifier {
       if (this.authToken == null) return;
       print("getComments()");
       final response =
-      await http.get('$url/comments/$contentItemId.json$authString');
+          await http.get('$url/comments/$contentItemId.json$authString');
       final List<Comment> loadedComments = [];
       final extracted = json.decode(response.body) as Map<String, dynamic>;
       if (extracted == null) {
@@ -36,8 +37,8 @@ class Comments with ChangeNotifier {
         throw new HttpException('Failed to post comment.');
       }
 
-      extracted
-          .forEach((id, data) => loadedComments.add(Comment.fromJson(id, data)));
+      extracted.forEach(
+          (id, data) => loadedComments.add(Comment.fromJson(id, data)));
       this._items = loadedComments.toList();
       print("Loaded comments for post with id: $contentItemId.");
       //this.notifyListeners();
@@ -52,14 +53,42 @@ class Comments with ChangeNotifier {
       this._items.add(Comment.copy(comment, ''));
       this.notifyListeners();
       final body = Comment.toJson(comment);
-      final response =
-      await http.post('$url/comments/$contentItemId.json$authString', body: body);
+      final response = await http
+          .post('$url/comments/$contentItemId.json$authString', body: body);
       if (response.statusCode >= 400 || response.statusCode >= 400) {
         throw new HttpException('Failed to post comment.');
       }
       print("Added comment to post with id: $contentItemId.");
     } catch (error) {
       throw error;
+    }
+  }
+
+  Future<void> deleteCommentsOfUser(
+      String userId, List<ContentItem> posts) async {
+    try {
+      posts.forEach((post) {
+        //TODO: Rethink design of comments (especially deleting).
+      });
+    } on HttpException catch (error) {
+      throw HttpException(
+          "Error while removing comments of user. [userId=$userId]");
+    }
+  }
+
+  Future<void> deleteComment(String id, String postId) async {
+    try {
+      final response =
+          await http.delete('$url/comments/$postId/$id.json$authString');
+      if (response.statusCode >= 400) {
+        throw HttpException(
+            "Error while deleting comment. [id=$id;postId=$postId]");
+      }
+      this._items.removeWhere((i) => i.id == id);
+      this.notifyListeners();
+    } catch (error) {
+      print(error);
+      throw HttpException("Error while deleting comment.");
     }
   }
 }

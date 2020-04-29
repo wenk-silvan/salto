@@ -15,7 +15,6 @@ import 'package:salto/providers/comments.dart';
 import 'package:salto/providers/content-items.dart';
 import 'package:salto/providers/users.dart';
 import 'package:salto/screens/comment_screen.dart';
-import 'package:salto/screens/post_screen.dart';
 import 'package:salto/screens/profile_screen.dart';
 
 import 'comment_widget.dart';
@@ -39,13 +38,20 @@ class _FeedPostState extends State<FeedPost> {
   User _signedInUser;
   String _updatingTitle;
   String _updatingDescription;
-  final _form = GlobalKey<FormState>();
   final _titleFocusNode = FocusNode();
   final _descriptionFocusNode = FocusNode();
+  final _form = GlobalKey<FormState>();
   static const List<String> menuEntries = <String>[
     'Edit',
-    'Remove',
+    'Delete',
   ];
+
+  @override
+  void dispose() {
+    _titleFocusNode.dispose();
+    _descriptionFocusNode.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -54,41 +60,41 @@ class _FeedPostState extends State<FeedPost> {
     _signedInUser = Provider.of<Users>(context).signedInUser;
     _postUser = Provider.of<Users>(context).findById(widget.post.userId);
     if (_isInit) {
-      _isFavorite =
-          ContentItem.isFavorite(widget.post, _signedInUser.id);
+      _isFavorite = ContentItem.isFavorite(widget.post, _signedInUser.id);
     }
     return Center(
       child: Card(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            _headerRowBuilder(),
-            _videoPlayerBuilder(),
-            _actionRowBuilder(),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8.0),
-              child: Text(
-                widget.post.title,
-                style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  _headerRowBuilder(),
+                  _videoPlayerBuilder(),
+                  _actionRowBuilder(),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                    child: Text(
+                      widget.post.title,
+                      style:
+                          TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                    child: Text(widget.post.description),
+                  ),
+                  SizedBox(height: _showComments ? 15 : 0),
+                  _showComments ? _commentsBuilder() : SizedBox(height: 0),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                    child: AddComment(
+                      postId: widget.post.id,
+                      userId: _signedInUser.id,
+                      hasLine: false,
+                    ),
+                  ),
+                ],
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8.0),
-              child: Text(widget.post.description),
-            ),
-            SizedBox(height: _showComments ? 15 : 0),
-            _showComments ? _commentsBuilder() : SizedBox(height: 0),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8.0),
-              child: AddComment(
-                postId: widget.post.id,
-                userId: _signedInUser.id,
-                hasLine: false,
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 
@@ -146,25 +152,26 @@ class _FeedPostState extends State<FeedPost> {
                           .getRange(_comments.length - 3, _comments.length)
                           .map((Comment c) => CommentWidget(c))
                           .toList()),
-          if (_comments.length > 3)
-            InkWell(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  Text(
-                    'more',
-                    style: TextStyle(color: Theme.of(context).accentColor),
+          _comments.length > 3
+              ? InkWell(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      Text(
+                        'more',
+                        style: TextStyle(color: Theme.of(context).accentColor),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-              onTap: () => Navigator.of(context)
-                  .pushNamed(CommentScreen.route, arguments: {
-                'postId': widget.post.id,
-                'postUser': _postUser,
-                'signedInUser': _signedInUser,
-                'comments': _comments,
-              }),
-            ),
+                  onTap: () => Navigator.of(context)
+                      .pushNamed(CommentScreen.route, arguments: {
+                    'postId': widget.post.id,
+                    'postUser': _postUser,
+                    'signedInUser': _signedInUser,
+                    'comments': _comments,
+                  }),
+                )
+              : SizedBox(),
         ],
       ),
     );
@@ -212,11 +219,26 @@ class _FeedPostState extends State<FeedPost> {
   }
 
   void _choiceAction(String choice) {
-    if (choice == 'Remove') {
+    if (choice == 'Delete') {
       _deletePostDialog();
     } else if (choice == 'Edit') {
       _editFormDialog();
     }
+  }
+
+  void _deletePostDialog() {
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return ConfirmDialog(
+            callback: () async {
+              await Provider.of<ContentItems>(context)
+                  .deleteContent(widget.post.id);
+              Navigator.pop(context);
+            },
+            statement: 'Remove this post?',
+          );
+        });
   }
 
   void _editFormDialog() {
@@ -230,11 +252,12 @@ class _FeedPostState extends State<FeedPost> {
               child: Column(
                 children: <Widget>[
                   TextFormField(
+                    autofocus: true,
                     initialValue: widget.post.title,
                     decoration: InputDecoration(labelText: 'Title'),
-                    textInputAction: TextInputAction.done,
+                    textInputAction: TextInputAction.next,
                     focusNode: _titleFocusNode,
-                    onFieldSubmitted: (_) => FocusScope.of(context)
+                    onFieldSubmitted: (_) => FocusScope.of(ctx)
                         .requestFocus(_descriptionFocusNode),
                     onSaved: (value) => _updatingTitle = value,
                   ),
@@ -273,63 +296,43 @@ class _FeedPostState extends State<FeedPost> {
   }
 
   void _saveForm() async {
-    _form.currentState.save();
     try {
+      Navigator.of(context).pop();
+      _form.currentState.save();
       if (_updatingTitle != widget.post.title) {
-        await Provider.of<ContentItems>(context, listen: false)
-            .updatePost(
-            'title', _updatingTitle, widget.post.id);
         setState(() {
           widget.post = ContentItem(
             id: widget.post.id,
             title: _updatingTitle,
             userId: widget.post.userId,
-            comments: widget.post.comments,
             likes: widget.post.likes,
             mediaUrl: widget.post.mediaUrl,
             timestamp: widget.post.timestamp,
             description: widget.post.description,
           );
         });
+        await Provider.of<ContentItems>(context, listen: false)
+            .updatePost('title', _updatingTitle, widget.post.id);
       }
       if (_updatingDescription != widget.post.description) {
-        await Provider.of<ContentItems>(context, listen: false)
-            .updatePost('description', _updatingDescription,
-            widget.post.id);
         setState(() {
           widget.post = ContentItem(
             id: widget.post.id,
             title: widget.post.title,
             userId: widget.post.userId,
-            comments: widget.post.comments,
             likes: widget.post.likes,
             mediaUrl: widget.post.mediaUrl,
             timestamp: widget.post.timestamp,
             description: _updatingDescription,
           );
         });
+        await Provider.of<ContentItems>(context, listen: false)
+            .updatePost('description', _updatingDescription, widget.post.id);
       }
-    } on HttpException catch (error) {
-      Scaffold.of(context).showSnackBar(SnackBar(
-          content: Text('Something went wrong.')
-      ));
+    } on HttpException catch (_) {
+      Scaffold.of(context)
+          .showSnackBar(SnackBar(content: Text('Failed to update post.')));
     }
-    Navigator.of(context).pop();
-  }
-
-  void _deletePostDialog() {
-    showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return ConfirmDialog(
-            callback: () async {
-              await Provider.of<ContentItems>(context)
-                  .deleteContent(widget.post.id);
-              Navigator.pop(context);
-            },
-            statement: 'Remove this post?',
-          );
-        });
   }
 
   Future<void> _toggleFavorite() async {

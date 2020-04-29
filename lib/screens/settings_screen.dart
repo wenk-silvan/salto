@@ -37,25 +37,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     setState(() {});
   }
 
-  void _deleteAccount() async {
-    await Provider.of<Auth>(context).deleteAccount();
-    Provider.of<Users>(context).removeSignedInUser();
-    Navigator.of(context).pop();
-    Navigator.of(context).pop();
-  }
-
-  void _confirmDeleteAccount() {
-    showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          // return object of type Dialog
-          return ConfirmDialog(
-            callback: this._deleteAccount,
-            statement: 'Remove your account and all its data?',
-          );
-        });
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -91,18 +72,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
               print('toggled notifications');
             },
           ),
-          SizedBox(height: 30),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              StylishRaisedButton(
-                callback: this._confirmDeleteAccount,
-                child: Text('Delete Account',
-                    style: TextStyle(
-                        color: Theme.of(context).textTheme.title.color)),
-              ),
-            ],
-          )
         ],
       ),
     );

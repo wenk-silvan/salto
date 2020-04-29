@@ -11,7 +11,6 @@ class ContentItem {
   final String mediaUrl;
   final DateTime timestamp;
   final String userId;
-  final List<Comment> comments;
   final List<String> likes;
 
   const ContentItem({
@@ -21,7 +20,6 @@ class ContentItem {
     @required this.mediaUrl,
     this.timestamp,
     @required this.userId,
-    @required this.comments,
     @required this.likes,
   });
 
@@ -30,7 +28,6 @@ class ContentItem {
       id: itemId,
       likes: item.likes,
       userId: item.userId,
-      comments: item.comments,
       title: item.title,
       mediaUrl: item.mediaUrl,
       timestamp: item.timestamp,
@@ -46,16 +43,6 @@ class ContentItem {
       userId: contentItemData['userId'],
       timestamp: DateTime.parse(contentItemData['dateTime']),
       description: contentItemData['description'],
-      comments: contentItemData['comments'] == null
-          ? []
-          : (contentItemData['comments'] as List<dynamic>)
-          .map((comment) => Comment(
-        timestamp: DateTime.parse(comment['timestamp']),
-        userId: comment['userId'],
-        id: comment['id'],
-        text: comment['text'],
-      ))
-          .toList(),
       likes: contentItemData['likes'] == null
           ? []
           : (contentItemData['likes'] as List<dynamic>)
@@ -76,14 +63,6 @@ class ContentItem {
       'mediaUrl': item.mediaUrl,
       'dateTime': timestamp.toIso8601String(),
       'userId': item.userId,
-      'comments': item.comments
-          .map((c) => {
-        'id': c.id,
-        'userId': c.userId,
-        'timestamp': c.timestamp.toIso8601String(),
-        'text': c.text,
-      })
-          .toList(),
       'likes': item.likes
     });
   }

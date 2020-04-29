@@ -36,7 +36,6 @@ class _UploadScreenState extends State<UploadScreen> {
   var _newContentItem = ContentItem(
     title: '',
     timestamp: DateTime.now(),
-    comments: [],
     id: '',
     likes: [],
     mediaUrl: '',
@@ -155,7 +154,6 @@ class _UploadScreenState extends State<UploadScreen> {
           title: this._newContentItem.title,
           timestamp: this._newContentItem.timestamp,
           id: this._newContentItem.id,
-          comments: this._newContentItem.comments,
           likes: this._newContentItem.likes,
           mediaUrl: this._newContentItem.mediaUrl,
           userId: _signedInUser.id,
@@ -178,7 +176,6 @@ class _UploadScreenState extends State<UploadScreen> {
           title: value,
           timestamp: this._newContentItem.timestamp,
           id: this._newContentItem.id,
-          comments: this._newContentItem.comments,
           likes: this._newContentItem.likes,
           mediaUrl: this._newContentItem.mediaUrl,
           userId: _signedInUser.id,

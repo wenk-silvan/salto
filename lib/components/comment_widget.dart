@@ -18,6 +18,7 @@ class _CommentWidgetState extends State<CommentWidget> {
   Widget build(BuildContext context) {
     final user = Provider.of<Users>(context, listen: false)
         .findById(widget.comment.userId);
+    if (user == null) return SizedBox(); // TODO: Fix workaround if comment structure updated and comments get deleted when user profile gets deleted.
     var currentTextData = StringBuffer();
     var textSpans = <TextSpan>[
       TextSpan(

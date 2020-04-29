@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
@@ -54,7 +55,8 @@ class ContentItems with ChangeNotifier {
 
   Future<void> deleteContent(String postId) async {
     try {
-      final response = await http.delete('$url/content/$postId.json$authString');
+      final response =
+          await http.delete('$url/content/$postId.json$authString');
       await this.storage.ref().child('videos').child('$postId.mp4').delete();
       if (response.statusCode >= 400) {
         throw HttpException("Error while deleting post.");
@@ -64,6 +66,19 @@ class ContentItems with ChangeNotifier {
     } catch (error) {
       print(error);
       throw HttpException("Error while deleting post.");
+    }
+  }
+
+  Future<void> deleteContentOfUser(String userId) async {
+    try {
+      _items
+          .where((i) => i.likes.any((l) => l == userId))
+          .forEach((i) => this.removeFromFavorites(i, userId));
+      _items
+          .where((i) => i.userId == userId)
+          .forEach((i) => deleteContent(i.id));
+    } on HttpException catch (error) {
+      throw HttpException("Error while removing content of user.");
     }
   }
 
@@ -92,10 +107,7 @@ class ContentItems with ChangeNotifier {
   }
 
   List<ContentItem> getContentByUserId(String userId) {
-    return this
-        ._items
-        .where((i) => i.userId == userId)
-        .toList();
+    return this._items.where((i) => i.userId == userId).toList();
   }
 
   List<ContentItem> getContentOfUsers(List<String> userIds) {
@@ -128,13 +140,32 @@ class ContentItems with ChangeNotifier {
     }
   }
 
+  Future<String> uploadToStorage(File file, String path, String fileName) async {
+    List<StorageUploadTask> _tasks = <StorageUploadTask>[];
+    final StorageReference ref =
+    this.storage.ref().child(path).child('$fileName');
+
+    final StorageUploadTask uploadTask = ref.putFile(
+      file,
+      StorageMetadata(
+        contentLanguage: 'en',
+        customMetadata: <String, String>{'activity': 'test'},
+      ),
+    );
+    final downloadUrl =
+    await (await uploadTask.onComplete).ref.getDownloadURL();
+    _tasks.add(uploadTask);
+    this.notifyListeners();
+    return downloadUrl;
+  }
+
   Future<int> updatePost(String field, dynamic data, String postId) async {
     final body = json.encode({
       field: data,
     });
     try {
       final response =
-      await http.patch('$url/content/$postId.json$authString', body: body);
+          await http.patch('$url/content/$postId.json$authString', body: body);
       return response.statusCode;
     } catch (error) {
       print(error);
