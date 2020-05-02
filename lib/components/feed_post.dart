@@ -38,6 +38,7 @@ class _FeedPostState extends State<FeedPost> {
   User _signedInUser;
   String _updatingTitle;
   String _updatingDescription;
+  Comments _commentData;
   final _titleFocusNode = FocusNode();
   final _descriptionFocusNode = FocusNode();
   final _form = GlobalKey<FormState>();
@@ -123,11 +124,10 @@ class _FeedPostState extends State<FeedPost> {
   Widget _commentsBuilder() {
     return _comments.length < 1
         ? FutureBuilder(
-            future: Provider.of<Comments>(context, listen: false)
-                .getComments(widget.post.id),
+            future: _commentData.getComments(widget.post.id),
             builder: (ctx, authResultSnapshot) {
               if (authResultSnapshot.connectionState == ConnectionState.done) {
-                _comments = Provider.of<Comments>(context, listen: true).items;
+                _comments = _commentData.items;
                 return _commentsListBuilder();
               } else {
                 return Center(child: CircularProgressIndicator());
@@ -335,7 +335,7 @@ class _FeedPostState extends State<FeedPost> {
   }
 
   Future<void> _toggleFavorite() async {
-    await Provider.of<ContentItems>(context)
+    await Provider.of<ContentItems>(context, listen: false)
         .toggleFavorites(widget.post, this._signedInUser.id);
     setState(() {
       this._isFavorite = !this._isFavorite;
