@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:salto/components/base_app_bar.dart';
 import 'package:salto/components/feed.dart';
+import 'package:salto/models/http_exception.dart';
 import 'package:salto/providers/auth.dart';
 import 'package:salto/providers/content-items.dart';
 import 'package:salto/providers/users.dart';
@@ -57,7 +58,7 @@ class _TabsScreenState extends State<TabsScreen> {
       var didLogIn = this._userData.login(authData.userId);
       if (!didLogIn) authData.logout();
       await _contentData.getContent(_userData.signedInUser);
-    } catch (error) {
+    } on HttpException catch (error) {
       throw error;
     }
   }

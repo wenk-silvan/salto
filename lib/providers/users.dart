@@ -30,14 +30,22 @@ class Users with ChangeNotifier {
   }
 
   Future<void> getUsers() async {
-    final response = await http.get('$url/users.json$authString');
-    final List<User> loadedUsers = [];
-    final extracted = json.decode(response.body) as Map<String, dynamic>;
-    if (extracted == null) return;
-    extracted.forEach((id, data) => loadedUsers.add(User.fromJson(id, data)));
-    this._users = loadedUsers.toList();
-    print("Loaded users from database.");
-    this.notifyListeners();
+    final errorMsg = 'Failed to fetch users.';
+    try {
+      final response = await http.get('$url/users.json$authString');
+      if(response.statusCode >= 400) {
+        throw new HttpException(errorMsg);
+      }
+      final List<User> loadedUsers = [];
+      final extracted = json.decode(response.body) as Map<String, dynamic>;
+      if (extracted == null) return;
+      extracted.forEach((id, data) => loadedUsers.add(User.fromJson(id, data)));
+      this._users = loadedUsers.toList();
+      this.notifyListeners();
+    } catch (error) {
+      print(error);
+      throw new HttpException(errorMsg);
+    }
   }
 
   bool login(String uuid) {
@@ -75,17 +83,18 @@ class Users with ChangeNotifier {
       follows.add(user.id);
       followers.add(this.signedInUser.id);
     }
-
+    this.notifyListeners();
+    final errorMsg = 'Failed to toggle following status';
     try {
       final statusCodeFollowers =
           await this._updateFollowers(user.id, followers);
       final statusCodeFollows = await this._updateFollows(this.signedInUser.id, follows);
       if (statusCodeFollowers >= 400 || statusCodeFollows >= 400) {
-        throw new HttpException('Failed to toggle following status.');
+        throw new HttpException(errorMsg);
       }
-      this.notifyListeners();
     } catch (error) {
-      throw error;
+      print(error);
+      throw HttpException(errorMsg);
     }
   }
 

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:salto/providers/auth.dart';
 
 class DarkDialog extends StatelessWidget {
   final String statement;
@@ -9,6 +11,9 @@ class DarkDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (!Provider.of<Auth>(context).isAuth) {
+      Navigator.of(context).pop();
+    }
     final textColor = this.brightMode ? Colors.black : Colors.white;
     return AlertDialog(
       backgroundColor: this.brightMode ? Colors.white : Colors.black,

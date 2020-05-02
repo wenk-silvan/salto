@@ -20,7 +20,6 @@ import 'package:salto/screens/settings_screen.dart';
 import 'package:salto/screens/splash_screen.dart';
 import 'package:salto/screens/tabs_screen.dart';
 import 'package:salto/screens/upload_screen.dart';
-import 'package:salto/screens/post_screen.dart';
 import 'package:salto/secret.dart';
 import 'package:salto/secret_loader.dart';
 
@@ -110,11 +109,11 @@ class MyApp extends StatelessWidget {
               ? TabsScreen()
               : FutureBuilder(
                   future: auth.tryAutoLogin(),
-                  builder: (ctx, authResultSnapshot) =>
-                      authResultSnapshot.connectionState ==
-                              ConnectionState.waiting
-                          ? SplashScreen()
-                          : AuthScreen(),
+                  builder: (ctx, authResultSnapshot) {
+                    if (authResultSnapshot.connectionState ==
+                        ConnectionState.waiting) return SplashScreen();
+                    return AuthScreen();
+                  },
                 ),
           routes: {
             SettingsScreen.route: (ctx) => SettingsScreen(),
@@ -124,7 +123,6 @@ class MyApp extends StatelessWidget {
             FeedScreen.route: (ctx) => FeedScreen(),
             CommentScreen.route: (ctx) => CommentScreen(),
             AuthScreen.route: (ctx) => AuthScreen(),
-            PostScreen.route: (ctx) => PostScreen(storage: this.storage),
             CameraScreen.route: (ctx) => CameraScreen(cameras: this.cameras),
           },
           onUnknownRoute: (settings) =>

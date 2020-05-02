@@ -4,6 +4,7 @@ import 'package:salto/components/circle_avatar_button.dart';
 import 'package:salto/models/user.dart';
 import 'package:salto/providers/users.dart';
 import 'package:salto/screens/profile_screen.dart';
+import 'package:salto/models/http_exception.dart';
 
 class SearchUserResult extends StatelessWidget {
   User user;
@@ -11,15 +12,14 @@ class SearchUserResult extends StatelessWidget {
   SearchUserResult(this.user);
 
   _navigateToProfile(BuildContext ctx) {
-    Navigator.pushNamed(ctx, ProfileScreen.route, arguments: {
-      'userId': this.user.id
-    });
+    Navigator.pushNamed(ctx, ProfileScreen.route,
+        arguments: {'userId': this.user.id});
   }
 
   @override
   Widget build(BuildContext context) {
-    var isFollowing =
-        Provider.of<Users>(context, listen: false).follows(this.user.id);
+    final isMe = Provider.of<Users>(context, listen: false).signedInUser.id ==
+        this.user.id;
     return Card(
       child: InkWell(
         onTap: () => this._navigateToProfile(context),
@@ -51,13 +51,23 @@ class SearchUserResult extends StatelessWidget {
                         ),
                       ],
                     ),
-                    Consumer<Users>(
-                      builder: (ctx, users, child) => IconButton(
-                        onPressed: () => users.toggleFollowingStatus(user),
-                        icon: Icon(
-                            users.follows(this.user.id) ? Icons.star : Icons.star_border),
-                      ),
-                    ),
+                    isMe
+                        ? SizedBox()
+                        : Consumer<Users>(
+                            builder: (ctx, users, child) => IconButton(
+                              onPressed: () {
+                                try {
+                                  users.toggleFollowingStatus(user);
+                                } on HttpException catch (error) {
+                                  Scaffold.of(ctx).showSnackBar(SnackBar(
+                                      content: Text('Operation failed.')));
+                                }
+                              },
+                              icon: Icon(users.follows(this.user.id)
+                                  ? Icons.star
+                                  : Icons.star_border),
+                            ),
+                          ),
                   ],
                 ),
               ),

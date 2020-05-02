@@ -6,6 +6,9 @@ import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:provider/provider.dart';
+import 'package:salto/providers/auth.dart';
+import 'package:salto/screens/splash_screen.dart';
 import 'package:salto/screens/upload_screen.dart';
 import 'package:sensors/sensors.dart';
 
@@ -21,7 +24,6 @@ class CameraScreen extends StatefulWidget {
   void logError(String code, String message) =>
       print('Error: $code\nError Message: $message');
 
-  /// Returns a suitable camera icon for [direction].
   IconData getCameraLensIcon(CameraLensDirection direction) {
     switch (direction) {
       case CameraLensDirection.back:
@@ -105,6 +107,10 @@ class CameraScreenState extends State<CameraScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (!Provider.of<Auth>(context).isAuth) {
+      Navigator.of(context).pop();
+      return SplashScreen();
+    }
     return Scaffold(
       key: _scaffoldKey,
       appBar: AppBar(

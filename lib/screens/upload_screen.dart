@@ -7,9 +7,11 @@ import 'package:salto/components/add_post_dialog.dart';
 import 'package:salto/components/file_video_player.dart';
 import 'package:salto/components/stylish_raised_button.dart';
 import 'package:salto/models/user.dart';
+import 'package:salto/providers/auth.dart';
 import 'package:salto/providers/content-items.dart';
 import 'package:salto/providers/users.dart';
 import 'package:salto/screens/camera_screen.dart';
+import 'package:salto/screens/splash_screen.dart';
 import 'package:uuid/uuid.dart';
 import 'package:video_player/video_player.dart';
 
@@ -44,51 +46,6 @@ class _UploadScreenState extends State<UploadScreen> {
   );
   List<StorageUploadTask> _tasks = <StorageUploadTask>[];
 
-  Future<void> _uploadFile(File file, String fileName) async {
-    final StorageReference ref =
-        widget.storage.ref().child('videos').child('$fileName.mp4');
-
-    final StorageUploadTask uploadTask = ref.putFile(
-      file,
-      StorageMetadata(
-        contentLanguage: 'en',
-        customMetadata: <String, String>{'activity': 'test'},
-      ),
-    );
-    this._downloadUrl =
-        await (await uploadTask.onComplete).ref.getDownloadURL();
-    setState(() {
-      _tasks.add(uploadTask);
-    });
-  }
-
-  void _saveForm() async {
-    if (!this._form.currentState.validate()) return;
-    this._form.currentState.save();
-    setState(() {
-      this._isLoading = true;
-    });
-    try {
-      if (_file == null) return;
-      final contentItemId =
-          await Provider.of<ContentItems>(context, listen: false)
-              .addContent(this._newContentItem);
-      await this._uploadFile(_file, contentItemId);
-      await Provider.of<ContentItems>(context, listen: false)
-          .updatePost('mediaUrl', this._downloadUrl, contentItemId);
-    } catch (error) {
-      print(error);
-      Scaffold.of(context).showSnackBar(SnackBar(
-          content: Text('Something went wrong.')
-      ));
-    }
-    setState(() {
-      this._isLoading = false;
-    });
-    Navigator.of(context).pop();
-    //Navigator.of(context).pop();
-  }
-
   @override
   void dispose() {
     this._titleFocusNode.dispose();
@@ -98,6 +55,10 @@ class _UploadScreenState extends State<UploadScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (!Provider.of<Auth>(context).isAuth) {
+      Navigator.of(context).pop();
+      return SplashScreen();
+    }
     _signedInUser = Provider.of<Users>(context, listen: false).signedInUser;
     _file = ModalRoute.of(context).settings.arguments as dynamic;
     return Scaffold(
@@ -187,5 +148,50 @@ class _UploadScreenState extends State<UploadScreen> {
         },
       ),
     );
+  }
+
+  void _saveForm() async {
+    if (!this._form.currentState.validate()) return;
+    this._form.currentState.save();
+    setState(() {
+      this._isLoading = true;
+    });
+    try {
+      if (_file == null) return;
+      final contentItemId =
+      await Provider.of<ContentItems>(context, listen: false)
+          .addContent(this._newContentItem);
+      await this._uploadFile(_file, contentItemId);
+      await Provider.of<ContentItems>(context, listen: false)
+          .updatePost('mediaUrl', this._downloadUrl, contentItemId);
+    } catch (error) {
+      print(error);
+      Scaffold.of(context).showSnackBar(SnackBar(
+          content: Text('Something went wrong.')
+      ));
+    }
+    setState(() {
+      this._isLoading = false;
+    });
+    Navigator.of(context).pop();
+    //Navigator.of(context).pop();
+  }
+
+  Future<void> _uploadFile(File file, String fileName) async {
+    final StorageReference ref =
+    widget.storage.ref().child('videos').child('$fileName.mp4');
+
+    final StorageUploadTask uploadTask = ref.putFile(
+      file,
+      StorageMetadata(
+        contentLanguage: 'en',
+        customMetadata: <String, String>{'activity': 'test'},
+      ),
+    );
+    this._downloadUrl =
+    await (await uploadTask.onComplete).ref.getDownloadURL();
+    setState(() {
+      _tasks.add(uploadTask);
+    });
   }
 }

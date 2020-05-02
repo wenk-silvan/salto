@@ -17,6 +17,7 @@ import 'package:salto/providers/comments.dart';
 import 'package:salto/providers/content-items.dart';
 import 'package:salto/providers/users.dart';
 import 'package:salto/models/http_exception.dart';
+import 'package:salto/screens/splash_screen.dart';
 
 import 'camera_screen.dart';
 import 'feed_screen.dart';
@@ -54,7 +55,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   bool _isMe = false;
   bool _isLoading = false;
   bool _iconVisible = false;
-  dynamic _scaffoldKey;
   String changed;
 
   @override
@@ -75,6 +75,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (!Provider.of<Auth>(context).isAuth) {
+      Navigator.of(context).pop();
+      return SplashScreen();
+    }
     final args = ModalRoute.of(context).settings.arguments as dynamic;
     _user = _userData.findById(args['userId']);
     _isMe = _userData.signedInUser.id == _user.id;
@@ -127,6 +131,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final posts =
         Provider.of<ContentItems>(context).getContentByUserId(_user.id);
     final postUrls = posts.map((p) => p.mediaUrl).toList();
+    if (postUrls.length == 0) {
+      return Center(child: Text('No posts yet.'));
+    }
     return SingleChildScrollView(
       child: ConstrainedBox(
         constraints: BoxConstraints(
@@ -144,6 +151,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             onTap: () =>
                 Navigator.pushNamed(context, FeedScreen.route, arguments: {
               'user': _user,
+              'startIndex': i,
             }),
             child: VideoThumbnail(postUrls[i]),
           ),
@@ -462,31 +470,4 @@ class _ProfileScreenState extends State<ProfileScreen> {
       });
     }
   }
-
-/*void _updatePictureDialog() {
-    showDialog(
-        context: context,
-        builder: (BuildContext ctx) {
-          final content = Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: <Widget>[
-              FlatButton(
-                child:
-                    Text('Take Video', style: TextStyle(color: Colors.white)),
-                onPressed: () => Navigator.of(context).pop(),
-              ),
-              FlatButton(
-                child:
-                    Text('From Gallery', style: TextStyle(color: Colors.white)),
-                onPressed: () => _choosePicture(context),
-              ),
-            ],
-          );
-          return DarkDialog(
-            content: content,
-            statement: 'Select your picture.',
-            brightMode: false,
-          );
-        });
-  }*/
 }

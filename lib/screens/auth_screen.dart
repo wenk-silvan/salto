@@ -7,7 +7,6 @@ class AuthScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final deviceSize = MediaQuery.of(context).size;
     return Scaffold(
       body: Container(
         height: MediaQuery.of(context).size.height,
@@ -37,7 +36,7 @@ class AuthScreen extends StatelessWidget {
                           fontSize: 40,
                         ),
                       ),
-                      subtitle: Text('Freestyle Trampoline Community App'),
+                      subtitle: Text('Freestyle Community App'),
                     ),
                     AuthActions(),
                   ],

@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:salto/models/content-item.dart';
+import 'package:salto/providers/content-items.dart';
 import 'package:salto/providers/users.dart';
-import 'package:salto/screens/post_screen.dart';
+import 'package:salto/screens/feed_screen.dart';
 
 import 'circle_avatar_button.dart';
 
@@ -14,29 +15,18 @@ class SearchPostResult extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var user = Provider.of<Users>(context).findById(this.post.userId);
-
+    var user = Provider.of<Users>(context, listen: false).findById(this.post.userId);
+    var startIndex = Provider.of<ContentItems>(context, listen: false).getContentByUserId(user.id).indexOf(post);
+    if (startIndex == -1) startIndex = 0;
     return Card(
       child: InkWell(
-        onTap: () => Navigator.pushNamed(context, PostScreen.route, arguments: {
-          'contentItemId': this.post.id,
+        onTap: () => Navigator.pushNamed(context, FeedScreen.route, arguments: {
+          'user': user,
+          'startIndex': startIndex,
         }),
         child: Row(
           children: <Widget>[
-            Padding(
-              padding: const EdgeInsets.all(10.0),
-              child: Container(
-                width: 100,
-                height: 75,
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: Image.network(
-                    this.post.mediaUrl,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-              ),
-            ),
+            CircleAvatarButton(user, Colors.white),
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.only(right: 20),

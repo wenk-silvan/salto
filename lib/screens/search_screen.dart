@@ -6,8 +6,10 @@ import 'package:salto/components/search_post_result.dart';
 import 'package:salto/components/search_user_result.dart';
 import 'package:salto/models/content-item.dart';
 import 'package:salto/models/user.dart';
+import 'package:salto/providers/auth.dart';
 import 'package:salto/providers/content-items.dart';
 import 'package:salto/providers/users.dart';
+import 'package:salto/screens/splash_screen.dart';
 
 class SearchScreen extends StatefulWidget {
   static const route = '/search';
@@ -24,39 +26,12 @@ class _SearchScreenState extends State<SearchScreen> {
   bool _isLoading = false;
   final TextEditingController _filter = new TextEditingController();
 
-  _onChangedInput() {
-    if (this._timer == null) {
-      setState(() {
-        this._isLoading = true;
-      });
-      this._timer = Timer(Duration(milliseconds: 500), _updateFilter);
-    }
-  }
-
-  Future<void> _updateFilter() {
-    setState(() {
-      if (this._userTabActivated) {
-        if (_filter.text.isEmpty) {
-          this.users = [];
-        } else {
-          this.users = Provider.of<Users>(context, listen: false)
-              .findByName(_filter.text);
-        }
-      } else {
-        if (_filter.text.isEmpty) {
-          this.content = [];
-        } else {
-          this.content = Provider.of<ContentItems>(context, listen: false)
-              .findByTitle(_filter.text);
-        }
-      }
-      this._isLoading = false;
-    });
-    this._timer = null;
-  }
-
   @override
   Widget build(BuildContext context) {
+    if (!Provider.of<Auth>(context).isAuth) {
+      Navigator.of(context).pop();
+      return SplashScreen();
+    }
     return DefaultTabController(
       length: 2,
       child: Scaffold(
@@ -89,7 +64,7 @@ class _SearchScreenState extends State<SearchScreen> {
             },
             tabs: <Widget>[
               Tab(icon: Icon(Icons.person)),
-              Tab(icon: Icon(Icons.photo)),
+              Tab(icon: Icon(Icons.movie)),
             ],
           ),
         ),
@@ -119,5 +94,36 @@ class _SearchScreenState extends State<SearchScreen> {
               ),
       ),
     );
+  }
+
+  void _onChangedInput() {
+    if (this._timer == null) {
+      setState(() {
+        this._isLoading = true;
+      });
+      this._timer = Timer(Duration(milliseconds: 500), _updateFilter);
+    }
+  }
+
+  Future<void> _updateFilter() {
+    setState(() {
+      if (this._userTabActivated) {
+        if (_filter.text.isEmpty) {
+          this.users = [];
+        } else {
+          this.users = Provider.of<Users>(context, listen: false)
+              .findByName(_filter.text);
+        }
+      } else {
+        if (_filter.text.isEmpty) {
+          this.content = [];
+        } else {
+          this.content = Provider.of<ContentItems>(context, listen: false)
+              .findByTitle(_filter.text);
+        }
+      }
+      this._isLoading = false;
+    });
+    this._timer = null;
   }
 }

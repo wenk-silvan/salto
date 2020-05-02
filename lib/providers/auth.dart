@@ -72,7 +72,9 @@ class Auth with ChangeNotifier {
         this._token = responseData['idToken'];
         this._userId = responseData['localId'];
         this._expiryDate = DateTime.now()
-            .add(Duration(seconds: int.parse(responseData['expiresIn'])));
+            .add(Duration(seconds: 15));
+        /*this._expiryDate = DateTime.now()
+            .add(Duration(seconds: int.parse(responseData['expiresIn'])));*/
       });
       this._autoLogout();
       this.notifyListeners();

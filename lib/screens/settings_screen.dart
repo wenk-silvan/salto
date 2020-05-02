@@ -4,6 +4,7 @@ import 'package:salto/components/confirm_dialog.dart';
 import 'package:salto/components/stylish_raised_button.dart';
 import 'package:salto/providers/auth.dart';
 import 'package:salto/providers/users.dart';
+import 'package:salto/screens/splash_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -39,6 +40,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (!Provider.of<Auth>(context).isAuth) {
+      Navigator.of(context).pop();
+      return SplashScreen();
+    }
     return Scaffold(
       appBar: AppBar(
         title: const Text('Settings'),

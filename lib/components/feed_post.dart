@@ -57,44 +57,44 @@ class _FeedPostState extends State<FeedPost> {
   Widget build(BuildContext context) {
     _updatingTitle = widget.post.title;
     _updatingDescription = widget.post.description;
-    _signedInUser = Provider.of<Users>(context).signedInUser;
-    _postUser = Provider.of<Users>(context).findById(widget.post.userId);
+    _signedInUser = Provider.of<Users>(context, listen: false).signedInUser;
+    _postUser = Provider.of<Users>(context, listen: false).findById(widget.post.userId);
     if (_isInit) {
       _isFavorite = ContentItem.isFavorite(widget.post, _signedInUser.id);
     }
     return Center(
       child: Card(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  _headerRowBuilder(),
-                  _videoPlayerBuilder(),
-                  _actionRowBuilder(),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                    child: Text(
-                      widget.post.title,
-                      style:
-                          TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                    child: Text(widget.post.description),
-                  ),
-                  SizedBox(height: _showComments ? 15 : 0),
-                  _showComments ? _commentsBuilder() : SizedBox(height: 0),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                    child: AddComment(
-                      postId: widget.post.id,
-                      userId: _signedInUser.id,
-                      hasLine: false,
-                    ),
-                  ),
-                ],
+        key: widget.key,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            _headerRowBuilder(),
+            _videoPlayerBuilder(),
+            _actionRowBuilder(),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+              child: Text(
+                widget.post.title,
+                style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
               ),
             ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+              child: Text(widget.post.description),
+            ),
+            SizedBox(height: _showComments ? 15 : 0),
+            _showComments ? _commentsBuilder() : SizedBox(height: 0),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+              child: AddComment(
+                postId: widget.post.id,
+                userId: _signedInUser.id,
+                hasLine: false,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -257,8 +257,8 @@ class _FeedPostState extends State<FeedPost> {
                     decoration: InputDecoration(labelText: 'Title'),
                     textInputAction: TextInputAction.next,
                     focusNode: _titleFocusNode,
-                    onFieldSubmitted: (_) => FocusScope.of(ctx)
-                        .requestFocus(_descriptionFocusNode),
+                    onFieldSubmitted: (_) =>
+                        FocusScope.of(ctx).requestFocus(_descriptionFocusNode),
                     onSaved: (value) => _updatingTitle = value,
                   ),
                   TextFormField(
