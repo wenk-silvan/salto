@@ -10,7 +10,7 @@ import 'package:salto/providers/comments.dart';
 import 'package:salto/providers/users.dart';
 import 'package:salto/screens/splash_screen.dart';
 
-class CommentScreen extends StatelessWidget {
+class CommentsScreen extends StatelessWidget {
   static const route = '/comments';
   List<Comment> _comments = [];
 
@@ -67,6 +67,7 @@ class CommentScreen extends StatelessWidget {
 
   Widget _commentRowBuilder(BuildContext ctx, final Comment comment) {
     final user = Provider.of<Users>(ctx, listen: false).findById(comment.userId);
+    if (user == null) return SizedBox();
     return Padding(
       padding: const EdgeInsets.only(bottom: 6.0),
       child: Container(

@@ -14,7 +14,7 @@ import 'package:salto/models/user.dart';
 import 'package:salto/providers/comments.dart';
 import 'package:salto/providers/content-items.dart';
 import 'package:salto/providers/users.dart';
-import 'package:salto/screens/comment_screen.dart';
+import 'package:salto/screens/comments_screen.dart';
 import 'package:salto/screens/profile_screen.dart';
 
 import 'comment_widget.dart';
@@ -164,7 +164,7 @@ class _FeedPostState extends State<FeedPost> {
                     ],
                   ),
                   onTap: () => Navigator.of(context)
-                      .pushNamed(CommentScreen.route, arguments: {
+                      .pushNamed(CommentsScreen.route, arguments: {
                     'postId': widget.post.id,
                     'postUser': _postUser,
                     'signedInUser': _signedInUser,
