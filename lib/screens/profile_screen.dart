@@ -415,7 +415,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _logout() {
-    Navigator.pop(context);
     Provider.of<Auth>(context, listen: false).logout();
   }
 

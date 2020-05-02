@@ -168,7 +168,6 @@ class _FeedPostState extends State<FeedPost> {
                     'postId': widget.post.id,
                     'postUser': _postUser,
                     'signedInUser': _signedInUser,
-                    'comments': _comments,
                   }),
                 )
               : SizedBox(),

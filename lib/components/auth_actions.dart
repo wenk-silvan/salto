@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:provider/provider.dart';
 import 'package:salto/models/http_exception.dart';
 import 'package:salto/models/user.dart';
@@ -15,7 +16,7 @@ class AuthActions extends StatefulWidget {
 class _AuthActionsState extends State<AuthActions> {
   final GlobalKey<FormState> _formKey = GlobalKey();
   AuthMode _authMode = AuthMode.Login;
-  Map<String, String> _authData = {
+  Map<String, String> _credentials = {
     'email': '',
     'password': '',
   };
@@ -25,97 +26,22 @@ class _AuthActionsState extends State<AuthActions> {
   final _lastNameController = TextEditingController();
   final _userNameController = TextEditingController();
 
-  void _addNewUser() {
-    try {
-        Provider.of<Auth>(context, listen: false).addUser(User(
-        followers: [],
-        firstName: this._firstNameController.text,
-        follows: [],
-        lastName: this._lastNameController.text,
-        locality: '',
-        userName: this._userNameController.text,
-        uuid: Provider.of<Auth>(context, listen: false).userId,
-        age: 0,
-        avatarUrl: 'http://wilkinsonschool.org/wp-content/uploads/2018/10/user-default-grey.png',
-        description: '',
-        id: '',
-      ), Provider.of<Users>(context));
-    } catch (error) {
-      Provider.of<Auth>(context, listen: false).logout();
-    }
-  }
-
-  void _submit() async {
-    if (!_formKey.currentState.validate()) {
-      // Invalid!
-      return;
-    }
-    _formKey.currentState.save();
-    setState(() {
-      _isLoading = true;
-    });
-    try {
-      if (_authMode == AuthMode.Login) {
-        await Provider.of<Auth>(context, listen: false).login(
-          _authData['email'],
-          _authData['password'],
-        );
-      }
-      else if (_authMode == AuthMode.Signup) {
-        await Provider.of<Auth>(context, listen: false).signup(
-          _authData['email'],
-          _authData['password'],
-        );
-        this._addNewUser();
-      }
-      else {
-        await Provider.of<Auth>(context, listen: false).resetPassword(
-          _authData['email'].trim()
-        );
+  @override
+  void initState() {
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      final _authData = Provider.of<Auth>(context, listen: false);
+      if (_authData.isAutoLogout) {
         Scaffold.of(context).showSnackBar(SnackBar(
-          content: Text('Password reset email sent.')
+          content: Text('You have been signed out automatically.'),
         ));
-        this._switchAuthMode();
+        _authData.isAutoLogout = false;
       }
-    } on HttpException catch (error) {
-      var errorMessage = 'Auhentication failed';
-      if (error.toString().contains('EMAIL_EXISTS')) {
-        errorMessage = 'This email address is already in use.';
-      } else if (error.toString().contains('INVALID_EMAIL')) {
-        errorMessage = 'This is not a valid email address.';
-      } else if (error.toString().contains('WEAK_PASSWORD')) {
-        errorMessage = 'This password is too weak.';
-      } else if (error.toString().contains('EMAIL_NOT_FOUND')) {
-        errorMessage = 'Could not find a user with that email.';
-      } else if (error.toString().contains('INVALID_PASSWORD')) {
-        errorMessage = 'Invalid password.';
-      }
-      HttpException.showErrorDialog(errorMessage, context);
-    } catch (error) {
-      var errorMessage = 'Could not authenticate you. Please try again later.';
-      HttpException.showErrorDialog(errorMessage, context);
-    }
-
-    setState(() {
-      _isLoading = false;
     });
-  }
-
-  void _switchAuthMode() {
-    if (_authMode == AuthMode.Login) {
-      setState(() {
-        _authMode = AuthMode.Signup;
-      });
-    } else {
-      setState(() {
-        _authMode = AuthMode.Login;
-      });
-    }
+    super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    final deviceSize = MediaQuery.of(context).size;
     return Container(
       width: double.infinity,
       padding: EdgeInsets.all(16.0),
@@ -182,7 +108,7 @@ class _AuthActionsState extends State<AuthActions> {
                     return 'Cannot contain whitespaces.';
                 },
                 onSaved: (value) {
-                  _authData['email'] = value;
+                  _credentials['email'] = value;
                 },
               ),
               if (_authMode == AuthMode.Login || _authMode == AuthMode.Signup)
@@ -197,7 +123,7 @@ class _AuthActionsState extends State<AuthActions> {
                       return 'Cannot contain whitespaces.';
                   },
                   onSaved: (value) {
-                    _authData['password'] = value;
+                    _credentials['password'] = value;
                   },
                 ),
               if (_authMode == AuthMode.Signup)
@@ -256,5 +182,93 @@ class _AuthActionsState extends State<AuthActions> {
         ),
       ),
     );
+  }
+
+  void _addNewUser() {
+    try {
+      Provider.of<Auth>(context, listen: false).addUser(User(
+        followers: [],
+        firstName: this._firstNameController.text,
+        follows: [],
+        lastName: this._lastNameController.text,
+        locality: '',
+        userName: this._userNameController.text,
+        uuid: Provider.of<Auth>(context, listen: false).userId,
+        age: 0,
+        avatarUrl: 'http://wilkinsonschool.org/wp-content/uploads/2018/10/user-default-grey.png',
+        description: '',
+        id: '',
+      ), Provider.of<Users>(context));
+    } catch (error) {
+      Provider.of<Auth>(context, listen: false).logout();
+    }
+  }
+
+  void _submit() async {
+    if (!_formKey.currentState.validate()) {
+      // Invalid!
+      return;
+    }
+    _formKey.currentState.save();
+    setState(() {
+      _isLoading = true;
+    });
+    try {
+      if (_authMode == AuthMode.Login) {
+        await Provider.of<Auth>(context, listen: false).login(
+          _credentials['email'],
+          _credentials['password'],
+        );
+      }
+      else if (_authMode == AuthMode.Signup) {
+        await Provider.of<Auth>(context, listen: false).signup(
+          _credentials['email'],
+          _credentials['password'],
+        );
+        this._addNewUser();
+      }
+      else {
+        await Provider.of<Auth>(context, listen: false).resetPassword(
+            _credentials['email'].trim()
+        );
+        Scaffold.of(context).showSnackBar(SnackBar(
+            content: Text('Password reset email sent.')
+        ));
+        this._switchAuthMode();
+      }
+    } on HttpException catch (error) {
+      var errorMessage = 'Auhentication failed';
+      if (error.toString().contains('EMAIL_EXISTS')) {
+        errorMessage = 'This email address is already in use.';
+      } else if (error.toString().contains('INVALID_EMAIL')) {
+        errorMessage = 'This is not a valid email address.';
+      } else if (error.toString().contains('WEAK_PASSWORD')) {
+        errorMessage = 'This password is too weak.';
+      } else if (error.toString().contains('EMAIL_NOT_FOUND')) {
+        errorMessage = 'Could not find a user with that email.';
+      } else if (error.toString().contains('INVALID_PASSWORD')) {
+        errorMessage = 'Invalid password.';
+      }
+      HttpException.showErrorDialog(errorMessage, context);
+    } catch (error) {
+      var errorMessage = 'Could not authenticate you. Please try again later.';
+      HttpException.showErrorDialog(errorMessage, context);
+    }
+
+    setState(() {
+      _isLoading = false;
+    });
+  }
+
+  void _switchAuthMode() {
+    if (_authMode == AuthMode.Login) {
+      setState(() {
+        _authMode = AuthMode.Signup;
+      });
+    } else {
+      setState(() {
+        _authMode = AuthMode.Login;
+      });
+    }
   }
 }

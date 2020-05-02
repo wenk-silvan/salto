@@ -5,8 +5,10 @@ import 'package:salto/components/circle_avatar_button.dart';
 import 'package:salto/components/timestamp.dart';
 import 'package:salto/models/comment.dart';
 import 'package:salto/models/user.dart';
+import 'package:salto/providers/auth.dart';
 import 'package:salto/providers/comments.dart';
 import 'package:salto/providers/users.dart';
+import 'package:salto/screens/splash_screen.dart';
 
 class CommentScreen extends StatelessWidget {
   static const route = '/comments';
@@ -15,6 +17,10 @@ class CommentScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final args = ModalRoute.of(context).settings.arguments as dynamic;
+    if (!Provider.of<Auth>(context).isAuth) {
+      Navigator.of(context).pop();
+      return SplashScreen();
+    }
     final postId = args['postId'];
     final User postUser = args['postUser'];
     final User signedInUser = args['signedInUser'];
