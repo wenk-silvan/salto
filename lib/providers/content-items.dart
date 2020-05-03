@@ -41,15 +41,18 @@ class ContentItems with ChangeNotifier {
 
   Future<void> addToFavorites(ContentItem post, String userId) async {
     post.likes.add(userId);
+    this.notifyListeners();
     try {
-      final statusCode = await this.updatePost('likes', post.likes, post.id);
+      final statusCode = await this.updatePost({'likes': post.likes}, post.id);
       if (statusCode >= 400) {
         print("Error while adding like.");
         post.likes.remove(userId);
+        this.notifyListeners();
       }
     } catch (error) {
       print(error);
       post.likes.remove(userId);
+      this.notifyListeners();
     }
   }
 
@@ -99,6 +102,7 @@ class ContentItems with ChangeNotifier {
         (id, data) => loadedContent.add(ContentItem.fromJson(id, data)));
     loadedContent.sort((a, b) => b.timestamp.compareTo(a.timestamp));
     this._items = loadedContent.toList();
+    this.notifyListeners();
     print("Loaded content from database.");
   }
 
@@ -120,15 +124,18 @@ class ContentItems with ChangeNotifier {
 
   Future<void> removeFromFavorites(ContentItem post, String userId) async {
     post.likes.remove(userId);
+    this.notifyListeners();
     try {
-      final statusCode = await this.updatePost('likes', post.likes, post.id);
+      final statusCode = await this.updatePost({'likes': post.likes}, post.id);
       if (statusCode >= 400) {
         print("Error while removing like.");
         post.likes.add(userId);
+        this.notifyListeners();
       }
     } catch (error) {
       print(error);
       post.likes.add(userId);
+      this.notifyListeners();
     }
   }
 
@@ -140,10 +147,11 @@ class ContentItems with ChangeNotifier {
     }
   }
 
-  Future<String> uploadToStorage(File file, String path, String fileName) async {
+  Future<String> uploadToStorage(
+      File file, String path, String fileName) async {
     List<StorageUploadTask> _tasks = <StorageUploadTask>[];
     final StorageReference ref =
-    this.storage.ref().child(path).child('$fileName');
+        this.storage.ref().child(path).child('$fileName');
 
     final StorageUploadTask uploadTask = ref.putFile(
       file,
@@ -153,19 +161,18 @@ class ContentItems with ChangeNotifier {
       ),
     );
     final downloadUrl =
-    await (await uploadTask.onComplete).ref.getDownloadURL();
+        await (await uploadTask.onComplete).ref.getDownloadURL();
     _tasks.add(uploadTask);
     this.notifyListeners();
     return downloadUrl;
   }
 
-  Future<int> updatePost(String field, dynamic data, String postId) async {
-    final body = json.encode({
-      field: data,
-    });
+  Future<int> updatePost(Map<String, dynamic> data, String postId) async {
+    final body = json.encode(data);
     try {
       final response =
           await http.patch('$url/content/$postId.json$authString', body: body);
+      this.notifyListeners();
       return response.statusCode;
     } catch (error) {
       print(error);

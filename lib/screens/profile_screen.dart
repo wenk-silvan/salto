@@ -104,7 +104,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   AppBar _appBarBuilder() {
     return AppBar(
-      title: Text(_user.userName),
+      title: Text('@' + _user.userName),
       actions: <Widget>[
         _isMe
             ? PopupMenuButton(
@@ -117,7 +117,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 },
               )
             : IconButton(
-                onPressed: () => _userData.toggleFollowingStatus(_user),
+                onPressed: () => Provider.of<Users>(context).toggleFollowingStatus(_user),
                 color: Colors.white,
                 icon: Icon(_userData.follows(_user.id)
                     ? Icons.star
@@ -149,7 +149,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           itemCount: posts.length,
           itemBuilder: (ctx, i) => InkWell(
             onTap: () =>
-                Navigator.pushNamed(context, FeedScreen.route, arguments: {
+                Navigator.pushReplacementNamed(context, FeedScreen.route, arguments: {
               'user': _user,
               'startIndex': i,
             }),

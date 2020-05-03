@@ -33,9 +33,9 @@ class FeedScreen extends StatelessWidget {
     this.feed = Feed(this.posts, startIndex);
     return Scaffold(
       appBar: AppBar(
-        title: Text("${user.firstName} ${user.lastName}"),
+        title: Text('Posts of @' + user.userName),
         actions: <Widget>[
-          CircleAvatarButton(user, Theme.of(context).primaryColor)
+          CircleAvatarButton(user, Theme.of(context).primaryColor, true)
         ],
       ),
       body: this.feed,

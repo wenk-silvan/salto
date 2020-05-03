@@ -21,26 +21,64 @@ class _TabsScreenState extends State<TabsScreen> {
   Users _userData;
   List<Map<String, Object>> _pages;
   int _selectedPageIndex = 0;
-  bool isInit = true;
+  bool _isInit;
+
+  @override
+  void initState() {
+    _isInit = true;
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!_isInit) {
+      _pages = _pagesBuilder();
+      return _scaffoldBuilder();
+    } else {
+      return FutureBuilder(
+        future: _initialize(context),
+        builder: (ctx, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return _loadingScreenBuilder();
+          } else {
+            if (snapshot.hasError) {
+              return _errorScreenBuilder();
+            } else {
+              _pages = _pagesBuilder();
+              return _scaffoldBuilder();
+            }
+          }
+        },
+      );
+    }
+  }
 
   BottomNavigationBar _bottomNavBar() {
     return BottomNavigationBar(
       onTap: this._selectPage,
-      backgroundColor: Theme.of(context).primaryColor,
+      backgroundColor: Theme
+          .of(context)
+          .primaryColor,
       unselectedItemColor: Colors.white,
-      selectedItemColor: Theme.of(context).accentColor,
+      selectedItemColor: Theme
+          .of(context)
+          .accentColor,
       currentIndex: this._selectedPageIndex,
       type: BottomNavigationBarType.fixed,
       showSelectedLabels: false,
       showUnselectedLabels: false,
       items: [
         BottomNavigationBarItem(
-          backgroundColor: Theme.of(context).primaryColor,
+          backgroundColor: Theme
+              .of(context)
+              .primaryColor,
           icon: Icon(Icons.home),
           title: Text('All'),
         ),
         BottomNavigationBarItem(
-          backgroundColor: Theme.of(context).primaryColor,
+          backgroundColor: Theme
+              .of(context)
+              .primaryColor,
           icon: Icon(Icons.star),
           title: Text('Following'),
         ),
@@ -48,19 +86,54 @@ class _TabsScreenState extends State<TabsScreen> {
     );
   }
 
+  Widget _errorScreenBuilder() {
+    return Scaffold(
+      appBar: this._simpleAppBar(),
+      body: Center(child: Text('An error occurred!')),
+      bottomNavigationBar: this._bottomNavBar(),
+    );
+  }
+
   Future<void> _initialize(BuildContext ctx) async {
-    this.isInit = false;
-    this._userData = Provider.of<Users>(ctx, listen: false);
-    this._contentData = Provider.of<ContentItems>(context);
-    final authData = Provider.of<Auth>(ctx, listen: false);
     try {
-      await this._userData.getUsers();
-      var didLogIn = this._userData.login(authData.userId);
-      if (!didLogIn) authData.logout();
-      await _contentData.getContent(_userData.signedInUser);
+      _contentData = Provider.of<ContentItems>(ctx, listen: false);
+      _userData = Provider.of<Users>(ctx, listen: false);
+      await _userData.getUsers();
+      this._userData.login(Provider
+          .of<Auth>(ctx, listen: false)
+          .userId);
+      await _contentData.getContent(
+          _userData.signedInUser);
+      _isInit = false;
     } on HttpException catch (error) {
       throw error;
     }
+  }
+
+  Widget _loadingScreenBuilder() {
+    return Scaffold(
+      appBar: this._simpleAppBar(),
+      body: Center(child: CircularProgressIndicator()),
+      bottomNavigationBar: this._bottomNavBar(),
+    );
+  }
+
+  List<Map<String, Widget>> _pagesBuilder() {
+    return [
+      {'page': Feed(_contentData.items)},
+      {'page': Feed(_contentData.favItems)},
+    ];
+  }
+
+  Scaffold _scaffoldBuilder() {
+    return Scaffold(
+      appBar: BaseAppBar(),
+      body: RefreshIndicator(
+        child: _pages[_selectedPageIndex]['page'],
+        onRefresh: () => Provider.of<ContentItems>(context).getContent(_userData.signedInUser),
+      ),
+      bottomNavigationBar: _bottomNavBar(),
+    );
   }
 
   void _selectPage(int index) {
@@ -72,41 +145,6 @@ class _TabsScreenState extends State<TabsScreen> {
   AppBar _simpleAppBar() {
     return AppBar(
       title: Text('Salto'),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return FutureBuilder(
-      future: this._initialize(context),
-      builder: (ctx, snapshot) {
-        this._pages = [
-          {'page': Feed(_contentData.items)},
-          {'page': Feed(_contentData.favItems)},
-        ];
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return Scaffold(
-            appBar: this._simpleAppBar(),
-            body: Center(child: CircularProgressIndicator()),
-            bottomNavigationBar: this._bottomNavBar(),
-          );
-        } else {
-          if (snapshot.hasError) {
-            print(snapshot.error);
-            return Scaffold(
-              appBar: this._simpleAppBar(),
-              body: Center(child: Text('An error occurred!')),
-              bottomNavigationBar: this._bottomNavBar(),
-            );
-          } else {
-            return Scaffold(
-              appBar: BaseAppBar(),
-              body: this._pages[this._selectedPageIndex]['page'],
-              bottomNavigationBar: this._bottomNavBar(),
-            );
-          }
-        }
-      },
     );
   }
 }

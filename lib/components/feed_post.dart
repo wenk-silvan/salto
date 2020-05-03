@@ -21,7 +21,7 @@ import 'comment_widget.dart';
 import 'confirm_dialog.dart';
 
 class FeedPost extends StatefulWidget {
-  ContentItem post;
+  final ContentItem post;
 
   FeedPost(this.post);
 
@@ -31,14 +31,12 @@ class FeedPost extends StatefulWidget {
 
 class _FeedPostState extends State<FeedPost> {
   List<Comment> _comments = [];
-  bool _isInit = true;
-  bool _isFavorite;
   bool _showComments = false;
   User _postUser;
   User _signedInUser;
   String _updatingTitle;
   String _updatingDescription;
-  Comments _commentData;
+  Comments _commentsData;
   final _titleFocusNode = FocusNode();
   final _descriptionFocusNode = FocusNode();
   final _form = GlobalKey<FormState>();
@@ -46,6 +44,16 @@ class _FeedPostState extends State<FeedPost> {
     'Edit',
     'Delete',
   ];
+
+  @override
+  void initState() {
+    _updatingTitle = widget.post.title;
+    _updatingDescription = widget.post.description;
+    _signedInUser = Provider.of<Users>(context, listen: false).signedInUser;
+    _postUser = Provider.of<Users>(context, listen: false).findById(widget.post.userId);
+    _commentsData = Provider.of<Comments>(context, listen: false);
+    super.initState();
+  }
 
   @override
   void dispose() {
@@ -56,13 +64,6 @@ class _FeedPostState extends State<FeedPost> {
 
   @override
   Widget build(BuildContext context) {
-    _updatingTitle = widget.post.title;
-    _updatingDescription = widget.post.description;
-    _signedInUser = Provider.of<Users>(context, listen: false).signedInUser;
-    _postUser = Provider.of<Users>(context, listen: false).findById(widget.post.userId);
-    if (_isInit) {
-      _isFavorite = ContentItem.isFavorite(widget.post, _signedInUser.id);
-    }
     return Center(
       child: Card(
         key: widget.key,
@@ -76,7 +77,7 @@ class _FeedPostState extends State<FeedPost> {
               padding: const EdgeInsets.symmetric(horizontal: 8.0),
               child: Text(
                 widget.post.title,
-                style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
               ),
             ),
             Padding(
@@ -84,7 +85,7 @@ class _FeedPostState extends State<FeedPost> {
               child: Text(widget.post.description),
             ),
             SizedBox(height: _showComments ? 15 : 0),
-            _showComments ? _commentsBuilder() : SizedBox(height: 0),
+            _showComments ? _commentsBuilder() : const SizedBox(height: 0),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8.0),
               child: AddComment(
@@ -106,17 +107,18 @@ class _FeedPostState extends State<FeedPost> {
         IconButton(
           iconSize: 30,
           color: Colors.red,
-          icon: Icon(this._isFavorite ? Icons.favorite : Icons.favorite_border),
-          onPressed: () => this._toggleFavorite(),
+          icon: Icon(ContentItem.isFavorite(widget.post, _signedInUser.id) ? Icons.favorite : Icons.favorite_border),
+          onPressed: () => Provider.of<ContentItems>(context)
+              .toggleFavorites(widget.post, this._signedInUser.id),
         ),
         IconButton(
           iconSize: 30,
-          icon: Icon(Icons.comment),
+          icon: const Icon(Icons.comment),
           onPressed: () => setState(() => _showComments = !_showComments),
         ),
         Spacer(),
         Timestamp(widget.post.timestamp),
-        SizedBox(width: 5),
+        const SizedBox(width: 5),
       ],
     );
   }
@@ -124,13 +126,13 @@ class _FeedPostState extends State<FeedPost> {
   Widget _commentsBuilder() {
     return _comments.length < 1
         ? FutureBuilder(
-            future: _commentData.getComments(widget.post.id),
+            future: _commentsData.getComments(widget.post.id),
             builder: (ctx, authResultSnapshot) {
               if (authResultSnapshot.connectionState == ConnectionState.done) {
-                _comments = _commentData.items;
+                _comments = _commentsData.items;
                 return _commentsListBuilder();
               } else {
-                return Center(child: CircularProgressIndicator());
+                return const Center(child: CircularProgressIndicator());
               }
             })
         : _commentsListBuilder();
@@ -143,7 +145,7 @@ class _FeedPostState extends State<FeedPost> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           _comments.length < 1
-              ? Text('No comments available.')
+              ? const Text('No comments available.')
               : Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: _comments.length < 4
@@ -170,7 +172,7 @@ class _FeedPostState extends State<FeedPost> {
                     'signedInUser': _signedInUser,
                   }),
                 )
-              : SizedBox(),
+              : const SizedBox(),
         ],
       ),
     );
@@ -189,7 +191,7 @@ class _FeedPostState extends State<FeedPost> {
           CircleAvatarButton(_postUser, Colors.white),
           Text(
             "@${_postUser.userName}",
-            style: TextStyle(fontWeight: FontWeight.bold),
+            style: const TextStyle(fontWeight: FontWeight.bold),
           ),
           Spacer(),
           _postUser.id == _signedInUser.id
@@ -202,7 +204,7 @@ class _FeedPostState extends State<FeedPost> {
                         .toList();
                   },
                 )
-              : SizedBox(height: 0),
+              : const SizedBox(height: 0),
         ],
       ),
     );
@@ -213,7 +215,7 @@ class _FeedPostState extends State<FeedPost> {
       width: double.infinity,
       child: widget.post.mediaUrl.isNotEmpty
           ? FileVideoPlayer(true, File(''), widget.post.mediaUrl)
-          : Text(""),
+          : const Text(""),
     );
   }
 
@@ -231,7 +233,7 @@ class _FeedPostState extends State<FeedPost> {
         builder: (BuildContext context) {
           return ConfirmDialog(
             callback: () async {
-              await Provider.of<ContentItems>(context)
+              await Provider.of<ContentItems>(context, listen: false)
                   .deleteContent(widget.post.id);
               Navigator.pop(context);
             },
@@ -253,7 +255,7 @@ class _FeedPostState extends State<FeedPost> {
                   TextFormField(
                     autofocus: true,
                     initialValue: widget.post.title,
-                    decoration: InputDecoration(labelText: 'Title'),
+                    decoration: const InputDecoration(labelText: 'Title'),
                     textInputAction: TextInputAction.next,
                     focusNode: _titleFocusNode,
                     onFieldSubmitted: (_) =>
@@ -262,22 +264,22 @@ class _FeedPostState extends State<FeedPost> {
                   ),
                   TextFormField(
                     initialValue: widget.post.description,
-                    decoration: InputDecoration(labelText: 'Description'),
+                    decoration: const InputDecoration(labelText: 'Description'),
                     textInputAction: TextInputAction.done,
                     focusNode: _descriptionFocusNode,
                     onFieldSubmitted: (_) => _saveForm(),
                     onSaved: (value) => _updatingDescription = value,
                   ),
-                  Spacer(),
+                  const Spacer(),
                   Row(
                     children: <Widget>[
                       FlatButton(
-                        child: Text('Cancel'),
+                        child: const Text('Cancel'),
                         onPressed: () => Navigator.of(context).pop(),
                       ),
-                      Spacer(),
+                      const Spacer(),
                       FlatButton(
-                        child: Text('Update'),
+                        child: const Text('Update'),
                         onPressed: _saveForm,
                       ),
                     ],
@@ -295,50 +297,31 @@ class _FeedPostState extends State<FeedPost> {
   }
 
   void _saveForm() async {
+    final _contentData = Provider.of<ContentItems>(context, listen: false);
     try {
       Navigator.of(context).pop();
       _form.currentState.save();
-      if (_updatingTitle != widget.post.title) {
-        setState(() {
-          widget.post = ContentItem(
-            id: widget.post.id,
-            title: _updatingTitle,
-            userId: widget.post.userId,
-            likes: widget.post.likes,
-            mediaUrl: widget.post.mediaUrl,
-            timestamp: widget.post.timestamp,
-            description: widget.post.description,
-          );
-        });
-        await Provider.of<ContentItems>(context, listen: false)
-            .updatePost('title', _updatingTitle, widget.post.id);
-      }
-      if (_updatingDescription != widget.post.description) {
-        setState(() {
-          widget.post = ContentItem(
-            id: widget.post.id,
-            title: widget.post.title,
-            userId: widget.post.userId,
-            likes: widget.post.likes,
-            mediaUrl: widget.post.mediaUrl,
-            timestamp: widget.post.timestamp,
-            description: _updatingDescription,
-          );
-        });
-        await Provider.of<ContentItems>(context, listen: false)
-            .updatePost('description', _updatingDescription, widget.post.id);
-      }
+      if (_updatingTitle == widget.post.title && _updatingDescription == widget.post.description) return;
+      final _updated = ContentItem(
+        id: widget.post.id,
+        title: _updatingTitle,
+        userId: widget.post.userId,
+        likes: widget.post.likes,
+        mediaUrl: widget.post.mediaUrl,
+        timestamp: widget.post.timestamp,
+        description: _updatingDescription,
+      );
+      final data = {
+        'title': _updatingTitle,
+        'description': _updatingDescription,
+      };
+      _contentData.updatePost(data, widget.post.id);
+      final index = _contentData.items.indexOf(widget.post);
+      _contentData.items.removeAt(index);
+      _contentData.items.insert(index, _updated);
     } on HttpException catch (_) {
       Scaffold.of(context)
-          .showSnackBar(SnackBar(content: Text('Failed to update post.')));
+          .showSnackBar(const SnackBar(content: Text('Failed to update post.')));
     }
-  }
-
-  Future<void> _toggleFavorite() async {
-    await Provider.of<ContentItems>(context, listen: false)
-        .toggleFavorites(widget.post, this._signedInUser.id);
-    setState(() {
-      this._isFavorite = !this._isFavorite;
-    });
   }
 }

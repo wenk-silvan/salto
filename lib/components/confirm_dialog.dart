@@ -21,7 +21,7 @@ class ConfirmDialog extends StatelessWidget {
       elevation: 10,
       title: Text(
         this.statement,
-        style: TextStyle(fontSize: 20),
+        style: const TextStyle(fontSize: 20),
       ),
       titleTextStyle: TextStyle(color: textColor),
       content: this.child == null ? _actionButtonBuilder(context) :
@@ -47,7 +47,7 @@ class ConfirmDialog extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: <Widget>[
         FlatButton(
-            child: Text('Cancel', style: TextStyle(color: textColor)),
+            child: const Text('Cancel', style: TextStyle(color: textColor)),
             onPressed: () => Navigator.of(ctx).pop()),
         FlatButton(
           child: const Text('Ok', style: TextStyle(color: textColor)),

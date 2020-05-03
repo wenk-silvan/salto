@@ -1,7 +1,3 @@
-import 'dart:io';
-
-import 'package:camera/camera.dart';
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -16,7 +12,7 @@ class BaseAppBar extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     var signedInUser = Provider.of<Users>(context).signedInUser;
     return AppBar(
-      title: Text('Salto'),
+      title: const Text('Salto'),
       actions: <Widget>[
         IconButton(
           icon: Icon(Icons.search),

@@ -91,7 +91,8 @@ class _UploadScreenState extends State<UploadScreen> {
         StylishRaisedButton(
           callback: () => showDialog(
             context: context,
-            builder: (BuildContext ctx) => AddPostDialog(statement: 'Select another video.'),
+            builder: (BuildContext ctx) =>
+                AddPostDialog(statement: 'Select another video.'),
           ),
           child: Icon(Icons.add_a_photo, color: Colors.white),
         ),
@@ -159,16 +160,15 @@ class _UploadScreenState extends State<UploadScreen> {
     try {
       if (_file == null) return;
       final contentItemId =
-      await Provider.of<ContentItems>(context, listen: false)
-          .addContent(this._newContentItem);
+          await Provider.of<ContentItems>(context, listen: false)
+              .addContent(this._newContentItem);
       await this._uploadFile(_file, contentItemId);
       await Provider.of<ContentItems>(context, listen: false)
-          .updatePost('mediaUrl', this._downloadUrl, contentItemId);
+          .updatePost({'mediaUrl': _downloadUrl}, contentItemId);
     } catch (error) {
       print(error);
-      Scaffold.of(context).showSnackBar(SnackBar(
-          content: Text('Something went wrong.')
-      ));
+      Scaffold.of(context)
+          .showSnackBar(SnackBar(content: Text('Something went wrong.')));
     }
     setState(() {
       this._isLoading = false;
@@ -179,7 +179,7 @@ class _UploadScreenState extends State<UploadScreen> {
 
   Future<void> _uploadFile(File file, String fileName) async {
     final StorageReference ref =
-    widget.storage.ref().child('videos').child('$fileName.mp4');
+        widget.storage.ref().child('videos').child('$fileName.mp4');
 
     final StorageUploadTask uploadTask = ref.putFile(
       file,
@@ -189,7 +189,7 @@ class _UploadScreenState extends State<UploadScreen> {
       ),
     );
     this._downloadUrl =
-    await (await uploadTask.onComplete).ref.getDownloadURL();
+        await (await uploadTask.onComplete).ref.getDownloadURL();
     setState(() {
       _tasks.add(uploadTask);
     });

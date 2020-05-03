@@ -17,6 +17,7 @@ class Users with ChangeNotifier {
   Users(this.authToken, this._users) {
     if (this.authToken == null) return;
     this.authString = '?auth=$authToken';
+    this.getUsers();
   }
 
   List<User> get users {
