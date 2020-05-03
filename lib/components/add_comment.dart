@@ -4,8 +4,7 @@ import 'package:salto/models/comment.dart';
 import 'package:salto/providers/comments.dart';
 import 'package:salto/models/http_exception.dart';
 
-class AddComment extends StatelessWidget {
-  final TextEditingController _input = new TextEditingController();
+class AddComment extends StatefulWidget {
   String userId;
   String postId;
   bool hasLine;
@@ -13,8 +12,15 @@ class AddComment extends StatelessWidget {
   AddComment({this.userId, this.postId, this.hasLine});
 
   @override
+  _AddCommentState createState() => _AddCommentState();
+}
+
+class _AddCommentState extends State<AddComment> {
+  final TextEditingController _input = new TextEditingController();
+
+  @override
   Widget build(BuildContext context) {
-    if (this.hasLine) {
+    if (this.widget.hasLine) {
       return TextField(
         controller: _input,
         style: TextStyle(fontSize: 15),
@@ -58,12 +64,12 @@ class AddComment extends StatelessWidget {
     try {
       await Provider.of<Comments>(ctx).addComment(
           Comment(
-            userId: this.userId,
+            userId: this.widget.userId,
             timestamp: DateTime.now(),
             text: this._input.text,
             id: '',
           ),
-          this.postId);
+          this.widget.postId);
     } on HttpException catch (error) {
       HttpException.showErrorDialog(error.toString(), ctx);
     }

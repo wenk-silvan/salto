@@ -5,91 +5,75 @@ import 'package:provider/provider.dart';
 import 'package:salto/components/add_comment.dart';
 import 'package:salto/components/circle_avatar_button.dart';
 import 'package:salto/components/dark_dialog.dart';
+import 'package:salto/components/edit_post.dart';
 import 'package:salto/components/file_video_player.dart';
+import 'package:salto/components/post_comments.dart';
 import 'package:salto/components/timestamp.dart';
-import 'package:salto/models/comment.dart';
 import 'package:salto/models/content-item.dart';
-import 'package:salto/models/http_exception.dart';
 import 'package:salto/models/user.dart';
 import 'package:salto/providers/comments.dart';
 import 'package:salto/providers/content-items.dart';
 import 'package:salto/providers/users.dart';
-import 'package:salto/screens/comments_screen.dart';
 import 'package:salto/screens/profile_screen.dart';
-
-import 'comment_widget.dart';
+import 'package:salto/models/http_exception.dart';
 import 'confirm_dialog.dart';
 
-class FeedPost extends StatefulWidget {
+class FeedPost extends StatelessWidget {
   final ContentItem post;
-
-  FeedPost(this.post);
-
-  @override
-  _FeedPostState createState() => _FeedPostState();
-}
-
-class _FeedPostState extends State<FeedPost> {
-  List<Comment> _comments = [];
+  bool _isInit = true;
   bool _showComments = false;
   User _postUser;
   User _signedInUser;
-  String _updatingTitle;
-  String _updatingDescription;
-  Comments _commentsData;
-  final _titleFocusNode = FocusNode();
-  final _descriptionFocusNode = FocusNode();
-  final _form = GlobalKey<FormState>();
   static const List<String> menuEntries = <String>[
     'Edit',
     'Delete',
   ];
 
-  @override
-  void initState() {
-    _updatingTitle = widget.post.title;
-    _updatingDescription = widget.post.description;
-    _signedInUser = Provider.of<Users>(context, listen: false).signedInUser;
-    _postUser = Provider.of<Users>(context, listen: false).findById(widget.post.userId);
-    _commentsData = Provider.of<Comments>(context, listen: false);
-    super.initState();
-  }
+  FeedPost(this.post);
 
-  @override
-  void dispose() {
-    _titleFocusNode.dispose();
-    _descriptionFocusNode.dispose();
-    super.dispose();
+  void _initialize(BuildContext context) {
+    _signedInUser = Provider.of<Users>(context, listen: false).signedInUser;
+    _postUser = _postUser == null
+        ? Provider.of<Users>(context, listen: false).findById(this.post.userId)
+        : _postUser;
+    _isInit = false;
   }
 
   @override
   Widget build(BuildContext context) {
+    if (_isInit) _initialize(context);
     return Center(
       child: Card(
-        key: widget.key,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            _headerRowBuilder(),
+            _headerRowBuilder(context),
             _videoPlayerBuilder(),
-            _actionRowBuilder(),
+            _actionRowBuilder(context),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8.0),
               child: Text(
-                widget.post.title,
-                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                this.post.title,
+                style:
+                    const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
               ),
             ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8.0),
-              child: Text(widget.post.description),
+              child: Text(this.post.description),
             ),
             SizedBox(height: _showComments ? 15 : 0),
-            _showComments ? _commentsBuilder() : const SizedBox(height: 0),
+            _showComments
+                ? PostComments(this.post, {
+                    'postId': this.post.id,
+                    'postUser': _postUser,
+                    'signedInUser': _signedInUser,
+                  })
+                : const SizedBox(height: 0),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8.0),
               child: AddComment(
-                postId: widget.post.id,
+                postId: this.post.id,
                 userId: _signedInUser.id,
                 hasLine: false,
               ),
@@ -100,87 +84,37 @@ class _FeedPostState extends State<FeedPost> {
     );
   }
 
-  Widget _actionRowBuilder() {
+  Widget _actionRowBuilder(BuildContext ctx) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.start,
       children: <Widget>[
         IconButton(
           iconSize: 30,
           color: Colors.red,
-          icon: Icon(ContentItem.isFavorite(widget.post, _signedInUser.id) ? Icons.favorite : Icons.favorite_border),
-          onPressed: () => Provider.of<ContentItems>(context)
-              .toggleFavorites(widget.post, this._signedInUser.id),
+          icon: Icon(ContentItem.isFavorite(this.post, _signedInUser.id)
+              ? Icons.favorite
+              : Icons.favorite_border),
+          onPressed: () => Provider.of<ContentItems>(ctx)
+              .toggleFavorites(this.post, this._signedInUser.id),
         ),
         IconButton(
           iconSize: 30,
           icon: const Icon(Icons.comment),
-          onPressed: () => setState(() => _showComments = !_showComments),
+          onPressed: () {
+            _showComments = !_showComments;
+            Provider.of<Comments>(ctx).trigger();
+          },
         ),
         Spacer(),
-        Timestamp(widget.post.timestamp),
+        Timestamp(this.post.timestamp),
         const SizedBox(width: 5),
       ],
     );
   }
 
-  Widget _commentsBuilder() {
-    return _comments.length < 1
-        ? FutureBuilder(
-            future: _commentsData.getComments(widget.post.id),
-            builder: (ctx, authResultSnapshot) {
-              if (authResultSnapshot.connectionState == ConnectionState.done) {
-                _comments = _commentsData.items;
-                return _commentsListBuilder();
-              } else {
-                return const Center(child: CircularProgressIndicator());
-              }
-            })
-        : _commentsListBuilder();
-  }
-
-  Widget _commentsListBuilder() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          _comments.length < 1
-              ? const Text('No comments available.')
-              : Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: _comments.length < 4
-                      ? _comments.map((Comment c) => CommentWidget(c)).toList()
-                      : _comments
-                          .getRange(_comments.length - 3, _comments.length)
-                          .map((Comment c) => CommentWidget(c))
-                          .toList()),
-          _comments.length > 3
-              ? InkWell(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      Text(
-                        'more',
-                        style: TextStyle(color: Theme.of(context).accentColor),
-                      ),
-                    ],
-                  ),
-                  onTap: () => Navigator.of(context)
-                      .pushNamed(CommentsScreen.route, arguments: {
-                    'postId': widget.post.id,
-                    'postUser': _postUser,
-                    'signedInUser': _signedInUser,
-                  }),
-                )
-              : const SizedBox(),
-        ],
-      ),
-    );
-  }
-
-  Widget _headerRowBuilder() {
+  Widget _headerRowBuilder(BuildContext ctx) {
     return InkWell(
-      onTap: () => Navigator.of(context).pushNamed(
+      onTap: () => Navigator.of(ctx).pushNamed(
         ProfileScreen.route,
         arguments: {
           'userId': _postUser.id,
@@ -196,7 +130,7 @@ class _FeedPostState extends State<FeedPost> {
           Spacer(),
           _postUser.id == _signedInUser.id
               ? PopupMenuButton(
-                  onSelected: _choiceAction,
+                  onSelected: (str) => _choiceAction(ctx, str),
                   itemBuilder: (BuildContext ctx) {
                     return menuEntries
                         .map((entry) => PopupMenuItem<String>(
@@ -213,28 +147,28 @@ class _FeedPostState extends State<FeedPost> {
   Widget _videoPlayerBuilder() {
     return Container(
       width: double.infinity,
-      child: widget.post.mediaUrl.isNotEmpty
-          ? FileVideoPlayer(true, File(''), widget.post.mediaUrl)
+      child: this.post.mediaUrl.isNotEmpty
+          ? FileVideoPlayer(true, File(''), this.post.mediaUrl)
           : const Text(""),
     );
   }
 
-  void _choiceAction(String choice) {
+  void _choiceAction(BuildContext ctx, String choice) {
     if (choice == 'Delete') {
-      _deletePostDialog();
+      _deletePostDialog(ctx);
     } else if (choice == 'Edit') {
-      _editFormDialog();
+      _editFormDialog(ctx);
     }
   }
 
-  void _deletePostDialog() {
+  void _deletePostDialog(BuildContext ctx) {
     showDialog(
-        context: context,
+        context: ctx,
         builder: (BuildContext context) {
           return ConfirmDialog(
             callback: () async {
               await Provider.of<ContentItems>(context, listen: false)
-                  .deleteContent(widget.post.id);
+                  .deleteContent(this.post.id);
               Navigator.pop(context);
             },
             statement: 'Remove this post?',
@@ -242,86 +176,16 @@ class _FeedPostState extends State<FeedPost> {
         });
   }
 
-  void _editFormDialog() {
+  void _editFormDialog(BuildContext ctx) {
     showDialog(
-        context: context,
+        context: ctx,
         builder: (BuildContext ctx) {
-          final content = Form(
-            key: _form,
-            child: Container(
-              height: 180,
-              child: Column(
-                children: <Widget>[
-                  TextFormField(
-                    autofocus: true,
-                    initialValue: widget.post.title,
-                    decoration: const InputDecoration(labelText: 'Title'),
-                    textInputAction: TextInputAction.next,
-                    focusNode: _titleFocusNode,
-                    onFieldSubmitted: (_) =>
-                        FocusScope.of(ctx).requestFocus(_descriptionFocusNode),
-                    onSaved: (value) => _updatingTitle = value,
-                  ),
-                  TextFormField(
-                    initialValue: widget.post.description,
-                    decoration: const InputDecoration(labelText: 'Description'),
-                    textInputAction: TextInputAction.done,
-                    focusNode: _descriptionFocusNode,
-                    onFieldSubmitted: (_) => _saveForm(),
-                    onSaved: (value) => _updatingDescription = value,
-                  ),
-                  const Spacer(),
-                  Row(
-                    children: <Widget>[
-                      FlatButton(
-                        child: const Text('Cancel'),
-                        onPressed: () => Navigator.of(context).pop(),
-                      ),
-                      const Spacer(),
-                      FlatButton(
-                        child: const Text('Update'),
-                        onPressed: _saveForm,
-                      ),
-                    ],
-                  )
-                ],
-              ),
-            ),
-          );
+          final content = EditPost(this.post);
           return DarkDialog(
             content: content,
             statement: 'Update post',
             brightMode: true,
           );
         });
-  }
-
-  void _saveForm() async {
-    final _contentData = Provider.of<ContentItems>(context, listen: false);
-    try {
-      Navigator.of(context).pop();
-      _form.currentState.save();
-      if (_updatingTitle == widget.post.title && _updatingDescription == widget.post.description) return;
-      final _updated = ContentItem(
-        id: widget.post.id,
-        title: _updatingTitle,
-        userId: widget.post.userId,
-        likes: widget.post.likes,
-        mediaUrl: widget.post.mediaUrl,
-        timestamp: widget.post.timestamp,
-        description: _updatingDescription,
-      );
-      final data = {
-        'title': _updatingTitle,
-        'description': _updatingDescription,
-      };
-      _contentData.updatePost(data, widget.post.id);
-      final index = _contentData.items.indexOf(widget.post);
-      _contentData.items.removeAt(index);
-      _contentData.items.insert(index, _updated);
-    } on HttpException catch (_) {
-      Scaffold.of(context)
-          .showSnackBar(const SnackBar(content: Text('Failed to update post.')));
-    }
   }
 }

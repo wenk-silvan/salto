@@ -20,6 +20,10 @@ class Comments with ChangeNotifier {
     return this._items;
   }
 
+  void trigger() {
+    this.notifyListeners();
+  }
+
   Future<void> getComments(String contentItemId) async {
     try {
       if (this.authToken == null) return;
