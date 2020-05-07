@@ -31,7 +31,6 @@ class _UploadScreenState extends State<UploadScreen> {
   final _form = GlobalKey<FormState>();
   final _titleFocusNode = FocusNode();
   final _descriptionFocusNode = FocusNode();
-  String _downloadUrl;
   User _signedInUser;
   File _file;
   bool _isLoading = false;
@@ -44,7 +43,6 @@ class _UploadScreenState extends State<UploadScreen> {
     userId: '',
     description: '',
   );
-  List<StorageUploadTask> _tasks = <StorageUploadTask>[];
 
   @override
   void dispose() {
@@ -72,7 +70,7 @@ class _UploadScreenState extends State<UploadScreen> {
                 key: this._form,
                 child: Column(
                   children: <Widget>[
-                    FileVideoPlayer(true, _file),
+                    FileVideoPlayer(key: UniqueKey(),file: _file, loop: true),
                     _titleTextFieldBuilder(),
                     _descriptionTextFieldBuilder(),
                     SizedBox(height: 20),
@@ -157,41 +155,38 @@ class _UploadScreenState extends State<UploadScreen> {
     setState(() {
       this._isLoading = true;
     });
+    final contentData = Provider.of<ContentItems>(context, listen: false);
     try {
       if (_file == null) return;
-      final contentItemId =
-          await Provider.of<ContentItems>(context, listen: false)
-              .addContent(this._newContentItem);
-      await this._uploadFile(_file, contentItemId);
-      await Provider.of<ContentItems>(context, listen: false)
-          .updatePost({'mediaUrl': _downloadUrl}, contentItemId);
+      final contentItemId = await contentData.addContent(_newContentItem);
+      if (contentItemId == null) {
+        throw Exception("Error while uploading post.");
+      }
+      final fileName = '$contentItemId.mp4';
+      _file.copy(
+          '${Directory.systemTemp.path}/$fileName'); // Keep video in cache
+      final downloadUrl =
+          await contentData.uploadToStorage(_file, 'videos', fileName);
+      contentData.addFirst(ContentItem(
+        title: _newContentItem.title,
+        timestamp: _newContentItem.timestamp,
+        id: contentItemId,
+        likes: _newContentItem.likes,
+        mediaUrl: downloadUrl,
+        userId: _newContentItem.userId,
+        description: _newContentItem.description,
+      ));
+      contentData.updatePost({'mediaUrl': downloadUrl}, contentItemId);
+      Navigator.of(context).pop();
     } catch (error) {
       print(error);
       Scaffold.of(context)
           .showSnackBar(SnackBar(content: Text('Something went wrong.')));
     }
-    setState(() {
-      this._isLoading = false;
-    });
-    Navigator.of(context).pop();
-    //Navigator.of(context).pop();
-  }
-
-  Future<void> _uploadFile(File file, String fileName) async {
-    final StorageReference ref =
-        widget.storage.ref().child('videos').child('$fileName.mp4');
-
-    final StorageUploadTask uploadTask = ref.putFile(
-      file,
-      StorageMetadata(
-        contentLanguage: 'en',
-        customMetadata: <String, String>{'activity': 'test'},
-      ),
-    );
-    this._downloadUrl =
-        await (await uploadTask.onComplete).ref.getDownloadURL();
-    setState(() {
-      _tasks.add(uploadTask);
-    });
+    finally {
+      setState(() {
+        this._isLoading = false;
+      });
+    }
   }
 }

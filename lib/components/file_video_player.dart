@@ -3,7 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:salto/providers/player_manager.dart';
+import 'package:salto/providers/content-items.dart';
 import 'package:video_player/video_player.dart';
 
 class FileVideoPlayer extends StatefulWidget {
@@ -11,13 +11,15 @@ class FileVideoPlayer extends StatefulWidget {
   final File file;
   final String networkUri;
 
-  FileVideoPlayer(this.loop, this.file, [this.networkUri = '']);
+  FileVideoPlayer({Key key, this.loop, this.file, this.networkUri = ''})
+      : super(key: key);
 
   @override
   _FileVideoPlayerState createState() => _FileVideoPlayerState();
 }
 
 class _FileVideoPlayerState extends State<FileVideoPlayer> {
+  File _videoFile;
   VideoPlayerController _controller;
   Future<void> _initializeVideoPlayerFuture;
   bool _iconVisible = false;
@@ -25,19 +27,24 @@ class _FileVideoPlayerState extends State<FileVideoPlayer> {
 
   @override
   void initState() {
-    /*if (widget.networkUri.isNotEmpty) {
-      _controller = VideoPlayerController.network(widget.networkUri);
+    super.initState();
+    /*_controller = VideoPlayerController.asset(
+        "assets/videos/SampleVideo_1280x720_5mb.mp4");*/
+    if (widget.networkUri.isEmpty) {
+      _videoFile = widget.file;
+      _initializeFromFile();
     } else {
-      _controller = VideoPlayerController.file(widget.file);
-    }*/
-    if (widget.file.path.isNotEmpty) {
-      _controller = VideoPlayerController.file(widget.file);
-    } else {
-      _controller = VideoPlayerController.asset("assets/videos/SampleVideo_1280x720_5mb.mp4");
+      _videoFile = _getCached();
+      if (_videoFile != null) {
+        _initializeFromFile();
+      }
     }
+  }
+
+  void _initializeFromFile() async {
+    _controller = VideoPlayerController.file(_videoFile);
     _controller.setLooping(widget.loop);
     _initializeVideoPlayerFuture = _controller.initialize();
-    super.initState();
   }
 
   @override
@@ -48,7 +55,19 @@ class _FileVideoPlayerState extends State<FileVideoPlayer> {
 
   @override
   Widget build(BuildContext context) {
-    final playerManager = Provider.of<PlayerManager>(context);
+    return _videoFile == null
+        ? FutureBuilder(
+            future: _downloadVideo(widget.networkUri, context),
+            builder: (context, snapshot) {
+              return snapshot.connectionState == ConnectionState.done
+                  ? _videoPlayerBuilder(context)
+                  : Center(child: CircularProgressIndicator());
+            },
+          )
+        : _videoPlayerBuilder(context);
+  }
+
+  Widget _videoPlayerBuilder(BuildContext context) {
     return ConstrainedBox(
       constraints: new BoxConstraints(
           maxHeight: MediaQuery.of(context).size.height * 0.5),
@@ -62,7 +81,8 @@ class _FileVideoPlayerState extends State<FileVideoPlayer> {
                 Container(
                   color: Colors.black,
                   width: double.infinity,
-                  height: MediaQuery.of(context).size.width * (1 / _controller.value.aspectRatio) - 4,
+                  height: MediaQuery.of(context).size.width *
+                      (1 / _controller.value.aspectRatio) - 4,
                 ),
                 AspectRatio(
                   aspectRatio: _controller.value.aspectRatio,
@@ -93,24 +113,26 @@ class _FileVideoPlayerState extends State<FileVideoPlayer> {
                             ),
                           ),
                         ),
-                        _controller.value.isPlaying ? Positioned(
-                          bottom: 10,
-                          right: 10,
-                          child: CircleAvatar(
-                            radius: 15,
-                            backgroundColor: Colors.white60,
-                            child: IconButton(
-                              padding: EdgeInsets.all(0),
-                              onPressed: _toggleAudioState,
-                              icon: Icon(
-                                _isMute
-                                    ? Icons.volume_off
-                                    : Icons.volume_up,
-                                size: 18,
-                              ),
-                            ),
-                          ),
-                        ) : SizedBox(),
+                        _controller.value.isPlaying
+                            ? Positioned(
+                                bottom: 10,
+                                right: 10,
+                                child: CircleAvatar(
+                                  radius: 15,
+                                  backgroundColor: Colors.white60,
+                                  child: IconButton(
+                                    padding: EdgeInsets.all(0),
+                                    onPressed: _toggleAudioState,
+                                    icon: Icon(
+                                      _isMute
+                                          ? Icons.volume_off
+                                          : Icons.volume_up,
+                                      size: 18,
+                                    ),
+                                  ),
+                                ),
+                              )
+                            : SizedBox(),
                       ],
                     ),
                   ),
@@ -124,6 +146,26 @@ class _FileVideoPlayerState extends State<FileVideoPlayer> {
       ),
     );
   }
+
+  Future<void> _downloadVideo(String httpPath, BuildContext ctx) async {
+    final String fileName = RegExp('(-[^?/]*\.(mp4))').stringMatch(httpPath);
+    _videoFile = await Provider.of<ContentItems>(ctx, listen: false)
+        .downloadFromStorage('videos', fileName);
+    _initializeFromFile();
+    setState(() {});
+  }
+
+  File _getCached() {
+    final String fileName = _getFileName();
+    final Directory tempDir = Directory.systemTemp;
+    if (File('${tempDir.path}/$fileName').existsSync()) {
+      return File('${tempDir.path}/$fileName');
+    }
+    return null;
+  }
+
+  String _getFileName() =>
+      RegExp('(-[^?/]*\.(mp4))').stringMatch(widget.networkUri);
 
   void _toggleAudioState() {
     if (_controller == null) return;

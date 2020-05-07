@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
+import 'package:path/path.dart';
 import 'package:salto/models/http_exception.dart';
 import 'package:salto/models/user.dart';
 
@@ -33,10 +34,11 @@ class ContentItems with ChangeNotifier {
     final body = ContentItem.toJson(item);
     final response =
         await http.post('$url/content.json$authString', body: body);
-    final contentItemId = json.decode(response.body)['name'];
-    this.items.insert(0, ContentItem.copy(item, contentItemId));
-    this.notifyListeners();
-    return contentItemId;
+    return json.decode(response.body)['name'];
+  }
+
+  void addFirst(ContentItem item) {
+    _items.insert(0, item);
   }
 
   Future<void> addToFavorites(ContentItem post, String userId) async {
@@ -57,18 +59,19 @@ class ContentItems with ChangeNotifier {
   }
 
   Future<void> deleteContent(String postId) async {
+    final errorMsg = 'Error while deleting post.';
     try {
+      this._items.removeWhere((i) => i.id == postId);
+      this.notifyListeners();
       final response =
           await http.delete('$url/content/$postId.json$authString');
       await this.storage.ref().child('videos').child('$postId.mp4').delete();
       if (response.statusCode >= 400) {
-        throw HttpException("Error while deleting post.");
+        throw HttpException(errorMsg);
       }
-      this._items.removeWhere((i) => i.id == postId);
-      this.notifyListeners();
     } catch (error) {
       print(error);
-      throw HttpException("Error while deleting post.");
+      throw HttpException(errorMsg);
     }
   }
 
@@ -83,6 +86,17 @@ class ContentItems with ChangeNotifier {
     } on HttpException catch (error) {
       throw HttpException("Error while removing content of user.");
     }
+  }
+
+  Future<File> downloadFromStorage(final String path, final String fileName) async {
+    if (fileName.isEmpty)
+      throw PathException('File name not found in http path:\n$path\\$fileName');
+    final Directory tempDir = Directory.systemTemp;
+    final File file = File('${tempDir.path}/$fileName');
+    final StorageReference ref = this.storage.ref().child(path).child(fileName);
+    final StorageFileDownloadTask downloadTask = ref.writeToFile(file);
+    await downloadTask.future;
+    return file;
   }
 
   List<ContentItem> findByTitle(String text) {
@@ -151,7 +165,7 @@ class ContentItems with ChangeNotifier {
       File file, String path, String fileName) async {
     List<StorageUploadTask> _tasks = <StorageUploadTask>[];
     final StorageReference ref =
-        this.storage.ref().child(path).child('$fileName');
+        this.storage.ref().child(path).child(fileName);
 
     final StorageUploadTask uploadTask = ref.putFile(
       file,
@@ -172,7 +186,6 @@ class ContentItems with ChangeNotifier {
     try {
       final response =
           await http.patch('$url/content/$postId.json$authString', body: body);
-      this.notifyListeners();
       return response.statusCode;
     } catch (error) {
       print(error);

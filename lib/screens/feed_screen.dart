@@ -29,7 +29,7 @@ class FeedScreen extends StatelessWidget {
     final int startIndex = args['startIndex'] == null ? 0 : args['startIndex'];
 
     this.posts =
-        Provider.of<ContentItems>(context, listen: false).getContentByUserId(user.id);
+        Provider.of<ContentItems>(context).getContentByUserId(user.id);
     this.feed = Feed(this.posts, startIndex);
     return Scaffold(
       appBar: AppBar(

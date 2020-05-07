@@ -416,22 +416,16 @@ class CameraScreenState extends State<CameraScreen> {
       _showInSnackBar('Error: no camera available.');
       return null;
     }
-
+    if (_controller.value.isRecordingVideo) {
+      return null;
+    }
     _recordingTime = 0;
     _timer = Timer.periodic(Duration(seconds: 1), (timer) {
       _recordingTime++;
       _setTimerString();
     });
-
-    final Directory extDir = await getApplicationDocumentsDirectory();
-    final String dirPath = '${extDir.path}/salto/videos';
-    await Directory(dirPath).create(recursive: true);
-    final String filePath = '$dirPath/${_timestamp()}.mp4';
-
-    if (_controller.value.isRecordingVideo) {
-      return null;
-    }
-
+    final Directory tempDir = Directory.systemTemp;
+    final String filePath = '${tempDir.path}/${_timestamp()}.mp4';
     try {
       this._videoPath = filePath;
       await _controller.startVideoRecording(filePath);

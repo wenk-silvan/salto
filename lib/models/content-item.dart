@@ -1,11 +1,10 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-
-import 'comment.dart';
+import 'package:salto/models/http_exception.dart';
 
 class ContentItem {
-  final String id; // count starts at 50
+  final String id;
   final String title;
   final String description;
   final String mediaUrl;
@@ -36,6 +35,9 @@ class ContentItem {
   }
 
   static ContentItem fromJson(contentItemId, contentItemData) {
+    if (contentItemData['mediaUrl'] == null || contentItemData['title'] == null || contentItemData['userId'] == null) {
+      throw HttpException('The ContentItem is missing some data and can not be deserialized. [ID=$contentItemId, Data=$contentItemData]');
+    }
     return ContentItem(
       id: contentItemId,
       mediaUrl: contentItemData['mediaUrl'],

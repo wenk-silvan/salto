@@ -6,10 +6,6 @@ import 'package:salto/models/http_exception.dart';
 import 'package:salto/providers/auth.dart';
 import 'package:salto/providers/content-items.dart';
 import 'package:salto/providers/users.dart';
-import 'package:salto/screens/auth_screen.dart';
-import 'package:salto/screens/feed_screen.dart';
-
-import '../models/user.dart';
 
 class TabsScreen extends StatefulWidget {
   @override
@@ -17,7 +13,6 @@ class TabsScreen extends StatefulWidget {
 }
 
 class _TabsScreenState extends State<TabsScreen> {
-  ContentItems _contentData;
   Users _userData;
   List<Map<String, Object>> _pages;
   int _selectedPageIndex = 0;
@@ -96,17 +91,16 @@ class _TabsScreenState extends State<TabsScreen> {
 
   Future<void> _initialize(BuildContext ctx) async {
     try {
-      _contentData = Provider.of<ContentItems>(ctx, listen: false);
       _userData = Provider.of<Users>(ctx, listen: false);
       await _userData.getUsers();
       this._userData.login(Provider
           .of<Auth>(ctx, listen: false)
           .userId);
-      await _contentData.getContent(
+      await Provider.of<ContentItems>(ctx, listen: false).getContent(
           _userData.signedInUser);
       _isInit = false;
     } on HttpException catch (error) {
-      throw error;
+      print(error);
     }
   }
 
@@ -120,8 +114,8 @@ class _TabsScreenState extends State<TabsScreen> {
 
   List<Map<String, Widget>> _pagesBuilder() {
     return [
-      {'page': Feed(_contentData.items)},
-      {'page': Feed(_contentData.favItems)},
+      {'page': Feed(Provider.of<ContentItems>(context, listen: false).items)},
+      {'page': Feed(Provider.of<ContentItems>(context, listen: false).favItems)},
     ];
   }
 

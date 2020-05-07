@@ -15,15 +15,10 @@ import 'package:salto/providers/comments.dart';
 import 'package:salto/providers/content-items.dart';
 import 'package:salto/providers/users.dart';
 import 'package:salto/screens/profile_screen.dart';
-import 'package:salto/models/http_exception.dart';
 import 'confirm_dialog.dart';
 
 class FeedPost extends StatelessWidget {
   final ContentItem post;
-  bool _isInit = true;
-  bool _showComments = false;
-  User _postUser;
-  User _signedInUser;
   static const List<String> menuEntries = <String>[
     'Edit',
     'Delete',
@@ -31,17 +26,14 @@ class FeedPost extends StatelessWidget {
 
   FeedPost(this.post);
 
-  void _initialize(BuildContext context) {
-    _signedInUser = Provider.of<Users>(context, listen: false).signedInUser;
-    _postUser = _postUser == null
-        ? Provider.of<Users>(context, listen: false).findById(this.post.userId)
-        : _postUser;
-    _isInit = false;
-  }
+  bool _showComments = false;
+  User _postUser;
+  User _signedInUser;
 
   @override
   Widget build(BuildContext context) {
-    if (_isInit) _initialize(context);
+    _signedInUser = Provider.of<Users>(context, listen: false).signedInUser;
+    _postUser = Provider.of<Users>(context, listen: false).findById(this.post.userId);
     return Center(
       child: Card(
         child: Column(
@@ -132,7 +124,7 @@ class FeedPost extends StatelessWidget {
               ? PopupMenuButton(
                   onSelected: (str) => _choiceAction(ctx, str),
                   itemBuilder: (BuildContext ctx) {
-                    return menuEntries
+                    return FeedPost.menuEntries
                         .map((entry) => PopupMenuItem<String>(
                             value: entry, child: Text(entry)))
                         .toList();
@@ -148,7 +140,7 @@ class FeedPost extends StatelessWidget {
     return Container(
       width: double.infinity,
       child: this.post.mediaUrl.isNotEmpty
-          ? FileVideoPlayer(true, File(''), this.post.mediaUrl)
+          ? FileVideoPlayer(key: ObjectKey(this.post), loop: true, file: File(''), networkUri: this.post.mediaUrl)
           : const Text(""),
     );
   }
@@ -167,7 +159,7 @@ class FeedPost extends StatelessWidget {
         builder: (BuildContext context) {
           return ConfirmDialog(
             callback: () async {
-              await Provider.of<ContentItems>(context, listen: false)
+              Provider.of<ContentItems>(ctx, listen: false)
                   .deleteContent(this.post.id);
               Navigator.pop(context);
             },
