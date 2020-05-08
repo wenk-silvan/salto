@@ -157,8 +157,7 @@ class Users with ChangeNotifier {
         throw new HttpException(errorMsg);
       }
       final user = _users.firstWhere((u) => u.id == userId);
-      _users.removeWhere((u) => u.id == userId);
-      _users.add(User(
+      final clone = User(
         id: user.id,
         uuid: user.uuid,
         userName: user.userName,
@@ -170,7 +169,10 @@ class Users with ChangeNotifier {
         age: user.age,
         description: user.description,
         avatarUrl: avatarUrl,
-      ));
+      );
+      _users.removeWhere((u) => u.id == userId);
+      _users.add(clone);
+      signedInUser = clone;
       this.notifyListeners();
     } catch (error) {
       print(error);
