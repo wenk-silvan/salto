@@ -257,7 +257,7 @@ class _AuthActionsState extends State<AuthActions> {
             uuid: Provider.of<Auth>(context, listen: false).userId,
             age: 0,
             avatarUrl:
-                'http://wilkinsonschool.org/wp-content/uploads/2018/10/user-default-grey.png',
+                'https://cdn.pixabay.com/photo/2016/08/08/09/17/avatar-1577909_960_720.png',
             description: '',
             id: '',
           ),

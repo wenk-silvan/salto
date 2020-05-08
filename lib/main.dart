@@ -9,6 +9,7 @@ import 'package:salto/providers/comments.dart';
 import 'package:salto/providers/content-items.dart';
 import 'package:salto/providers/media.dart';
 import 'package:salto/providers/player_manager.dart';
+import 'package:salto/providers/storage.dart';
 import 'package:salto/providers/users.dart';
 import 'package:salto/screens/camera_screen.dart';
 import 'package:salto/screens/auth_screen.dart';
@@ -61,12 +62,12 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider.value(value: Auth()),
+        ChangeNotifierProvider.value(value: Storage(this.storage)),
         ChangeNotifierProxyProvider<Auth, ContentItems>(
           create: (BuildContext ctx) => null,
           update: (ctx, auth, previousItems) => ContentItems(
             auth.token,
             previousItems == null ? [] : previousItems.items,
-            storage,
           ),
         ),
         ChangeNotifierProxyProvider<Auth, Users>(

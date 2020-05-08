@@ -15,6 +15,7 @@ import 'package:salto/models/user.dart';
 import 'package:salto/providers/auth.dart';
 import 'package:salto/providers/comments.dart';
 import 'package:salto/providers/content-items.dart';
+import 'package:salto/providers/storage.dart';
 import 'package:salto/providers/users.dart';
 import 'package:salto/models/http_exception.dart';
 import 'package:salto/screens/splash_screen.dart';
@@ -320,19 +321,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   void _deleteAccount(BuildContext ctx) async {
     try {
-      await Provider.of<ContentItems>(ctx, listen: false)
-          .deleteContentOfUser(_user.id);
-      await Provider.of<Comments>(ctx, listen: false)
+      Provider.of<ContentItems>(ctx, listen: false)
+          .deleteContentOfUser(Provider.of<Storage>(ctx, listen: false), _user.id);
+      Provider.of<Comments>(ctx, listen: false)
           .deleteCommentsOfUser(_user.id, []);
-      await Provider.of<Users>(ctx, listen: false).removeSignedInUser();
-      await Provider.of<Auth>(ctx, listen: false).deleteAccount();
+      if (_user.avatarUrl != ProfileScreen._placeholderAvatarUrl) {
+        Provider.of<Storage>(ctx, listen: false).deleteFromStorage('images', '${_user.id}.jpg');
+      }
+      Provider.of<Users>(ctx, listen: false).removeSignedInUser();
+      Provider.of<Auth>(ctx, listen: false).deleteAccount();
     } on HttpException catch (error) {
-      Scaffold.of(context).showSnackBar(SnackBar(
+      Scaffold.of(ctx).showSnackBar(SnackBar(
         content: Text('Error while removing profile.'),
       ));
     }
-    Navigator.pop(ctx);
-    _logout();
   }
 
   void _editFormDialog() {
@@ -456,7 +458,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final oldUser = _user;
     try {
       final downloadUrl =
-          await Provider.of<ContentItems>(context, listen: false)
+          await Provider.of<Storage>(context, listen: false)
               .uploadToStorage(file, 'images', '${_user.id}.jpg');
       await Provider.of<Users>(context).updateAvatarUrl(downloadUrl, _user.id);
     } on HttpException catch (error) {

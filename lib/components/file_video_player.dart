@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:salto/providers/content-items.dart';
+import 'package:salto/providers/storage.dart';
 import 'package:video_player/video_player.dart';
 
 class FileVideoPlayer extends StatefulWidget {
@@ -149,7 +150,7 @@ class _FileVideoPlayerState extends State<FileVideoPlayer> {
 
   Future<void> _downloadVideo(String httpPath, BuildContext ctx) async {
     final String fileName = RegExp('(-[^?/]*\.(mp4))').stringMatch(httpPath);
-    _videoFile = await Provider.of<ContentItems>(ctx, listen: false)
+    _videoFile = await Provider.of<Storage>(ctx, listen: false)
         .downloadFromStorage('videos', fileName);
     _initializeFromFile();
     setState(() {});

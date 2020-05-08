@@ -67,7 +67,6 @@ class Auth with ChangeNotifier {
               'requestType': 'PASSWORD_RESET',
             }));
         final responseData = json.decode(response.body);
-        print(responseData);
         if (responseData['error'] != null) {
           throw HttpException(responseData['error']['message']);
         }
@@ -126,7 +125,6 @@ class Auth with ChangeNotifier {
               'idToken': this.token,
             }));
         final responseData = json.decode(response.body);
-        print(responseData);
         if (responseData['error'] != null) {
           throw HttpException(responseData['error']['message']);
         }
@@ -151,7 +149,6 @@ class Auth with ChangeNotifier {
               'returnSecureToken': true,
             }));
         final responseData = json.decode(response.body);
-        print(responseData);
         if (responseData['error'] != null) {
           throw HttpException(responseData['error']['message']);
         }

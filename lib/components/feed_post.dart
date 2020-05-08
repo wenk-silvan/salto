@@ -13,6 +13,7 @@ import 'package:salto/models/content-item.dart';
 import 'package:salto/models/user.dart';
 import 'package:salto/providers/comments.dart';
 import 'package:salto/providers/content-items.dart';
+import 'package:salto/providers/storage.dart';
 import 'package:salto/providers/users.dart';
 import 'package:salto/screens/profile_screen.dart';
 import 'confirm_dialog.dart';
@@ -33,7 +34,8 @@ class FeedPost extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     _signedInUser = Provider.of<Users>(context, listen: false).signedInUser;
-    _postUser = Provider.of<Users>(context, listen: false).findById(this.post.userId);
+    _postUser =
+        Provider.of<Users>(context, listen: false).findById(this.post.userId);
     return Center(
       child: Card(
         child: Column(
@@ -140,7 +142,11 @@ class FeedPost extends StatelessWidget {
     return Container(
       width: double.infinity,
       child: this.post.mediaUrl.isNotEmpty
-          ? FileVideoPlayer(key: ObjectKey(this.post), loop: true, file: File(''), networkUri: this.post.mediaUrl)
+          ? FileVideoPlayer(
+              key: ObjectKey(this.post),
+              loop: true,
+              file: File(''),
+              networkUri: this.post.mediaUrl)
           : const Text(""),
     );
   }
@@ -159,8 +165,8 @@ class FeedPost extends StatelessWidget {
         builder: (BuildContext context) {
           return ConfirmDialog(
             callback: () async {
-              Provider.of<ContentItems>(ctx, listen: false)
-                  .deleteContent(this.post.id);
+              await Provider.of<ContentItems>(ctx, listen: false)
+                  .deleteContent(Provider.of<Storage>(ctx, listen: false), this.post.id);
               Navigator.pop(context);
             },
             statement: 'Remove this post?',

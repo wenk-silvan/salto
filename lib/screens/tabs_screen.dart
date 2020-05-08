@@ -99,8 +99,9 @@ class _TabsScreenState extends State<TabsScreen> {
       await Provider.of<ContentItems>(ctx, listen: false).getContent(
           _userData.signedInUser);
       _isInit = false;
-    } on HttpException catch (error) {
-      print(error);
+    } catch (error) {
+      print('ERROR OCCURED: $error');
+      Provider.of<Auth>(context).logout();
     }
   }
 

@@ -2,10 +2,12 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart';
 import 'package:salto/models/http_exception.dart';
 import 'package:salto/models/user.dart';
+import 'package:salto/providers/storage.dart';
 
 import '../models/content-item.dart';
 import 'package:http/http.dart' as http;
@@ -16,9 +18,8 @@ class ContentItems with ChangeNotifier {
   final String authToken;
   List<String> _favoriteUserIds = [];
   List<ContentItem> _items = [];
-  final FirebaseStorage storage;
 
-  ContentItems(this.authToken, this._items, this.storage) {
+  ContentItems(this.authToken, this._items) {
     this.authString = '?auth=$authToken';
   }
 
@@ -58,14 +59,16 @@ class ContentItems with ChangeNotifier {
     }
   }
 
-  Future<void> deleteContent(String postId) async {
+  Future<void> deleteContent(Storage storageProvider, String postId) async {
     final errorMsg = 'Error while deleting post.';
     try {
-      this._items.removeWhere((i) => i.id == postId);
+      var copy = _items.sublist(0, _items.length);
+      copy.removeWhere((i) => i.id == postId);
+      _items = copy.sublist(0, copy.length);
       this.notifyListeners();
       final response =
           await http.delete('$url/content/$postId.json$authString');
-      await this.storage.ref().child('videos').child('$postId.mp4').delete();
+      await storageProvider.deleteFromStorage('videos', '$postId.mp4');
       if (response.statusCode >= 400) {
         throw HttpException(errorMsg);
       }
@@ -75,28 +78,18 @@ class ContentItems with ChangeNotifier {
     }
   }
 
-  Future<void> deleteContentOfUser(String userId) async {
+  Future<void> deleteContentOfUser(
+      Storage storageProvider, String userId) async {
     try {
       _items
           .where((i) => i.likes.any((l) => l == userId))
           .forEach((i) => this.removeFromFavorites(i, userId));
       _items
           .where((i) => i.userId == userId)
-          .forEach((i) => deleteContent(i.id));
+          .forEach((i) => deleteContent(storageProvider, i.id));
     } on HttpException catch (error) {
       throw HttpException("Error while removing content of user.");
     }
-  }
-
-  Future<File> downloadFromStorage(final String path, final String fileName) async {
-    if (fileName.isEmpty)
-      throw PathException('File name not found in http path:\n$path\\$fileName');
-    final Directory tempDir = Directory.systemTemp;
-    final File file = File('${tempDir.path}/$fileName');
-    final StorageReference ref = this.storage.ref().child(path).child(fileName);
-    final StorageFileDownloadTask downloadTask = ref.writeToFile(file);
-    await downloadTask.future;
-    return file;
   }
 
   List<ContentItem> findByTitle(String text) {
@@ -159,26 +152,6 @@ class ContentItems with ChangeNotifier {
     } else {
       await this.addToFavorites(post, userId);
     }
-  }
-
-  Future<String> uploadToStorage(
-      File file, String path, String fileName) async {
-    List<StorageUploadTask> _tasks = <StorageUploadTask>[];
-    final StorageReference ref =
-        this.storage.ref().child(path).child(fileName);
-
-    final StorageUploadTask uploadTask = ref.putFile(
-      file,
-      StorageMetadata(
-        contentLanguage: 'en',
-        customMetadata: <String, String>{'activity': 'test'},
-      ),
-    );
-    final downloadUrl =
-        await (await uploadTask.onComplete).ref.getDownloadURL();
-    _tasks.add(uploadTask);
-    this.notifyListeners();
-    return downloadUrl;
   }
 
   Future<int> updatePost(Map<String, dynamic> data, String postId) async {

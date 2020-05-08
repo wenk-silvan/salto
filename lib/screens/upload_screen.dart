@@ -9,6 +9,7 @@ import 'package:salto/components/stylish_raised_button.dart';
 import 'package:salto/models/user.dart';
 import 'package:salto/providers/auth.dart';
 import 'package:salto/providers/content-items.dart';
+import 'package:salto/providers/storage.dart';
 import 'package:salto/providers/users.dart';
 import 'package:salto/screens/camera_screen.dart';
 import 'package:salto/screens/splash_screen.dart';
@@ -70,7 +71,7 @@ class _UploadScreenState extends State<UploadScreen> {
                 key: this._form,
                 child: Column(
                   children: <Widget>[
-                    FileVideoPlayer(key: UniqueKey(),file: _file, loop: true),
+                    FileVideoPlayer(key: UniqueKey(), file: _file, loop: true),
                     _titleTextFieldBuilder(),
                     _descriptionTextFieldBuilder(),
                     SizedBox(height: 20),
@@ -165,8 +166,8 @@ class _UploadScreenState extends State<UploadScreen> {
       final fileName = '$contentItemId.mp4';
       _file.copy(
           '${Directory.systemTemp.path}/$fileName'); // Keep video in cache
-      final downloadUrl =
-          await contentData.uploadToStorage(_file, 'videos', fileName);
+      final downloadUrl = await Provider.of<Storage>(context, listen: false)
+          .uploadToStorage(_file, 'videos', fileName);
       contentData.addFirst(ContentItem(
         title: _newContentItem.title,
         timestamp: _newContentItem.timestamp,
@@ -182,8 +183,7 @@ class _UploadScreenState extends State<UploadScreen> {
       print(error);
       Scaffold.of(context)
           .showSnackBar(SnackBar(content: Text('Something went wrong.')));
-    }
-    finally {
+    } finally {
       setState(() {
         this._isLoading = false;
       });
