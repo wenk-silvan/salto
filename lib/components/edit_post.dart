@@ -103,9 +103,8 @@ class _EditPostState extends State<EditPost> {
       final index = _contentData.items.indexOf(widget.post);
       _contentData.items.removeAt(index);
       _contentData.items.insert(index, _updated);
-    } on HttpException catch (_) {
-      Scaffold.of(context)
-          .showSnackBar(const SnackBar(content: Text('Failed to update post.')));
+    } on HttpException catch (error) {
+      HttpException.showErrorDialog(error.message, context);
     }
   }
 }

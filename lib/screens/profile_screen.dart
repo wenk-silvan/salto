@@ -118,7 +118,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 },
               )
             : IconButton(
-                onPressed: () => Provider.of<Users>(context).toggleFollowingStatus(_user),
+                onPressed: () => _toggleFollowingStatusFuture(context),
                 color: Colors.white,
                 icon: Icon(_userData.follows(_user.id)
                     ? Icons.star
@@ -331,9 +331,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       Provider.of<Users>(ctx, listen: false).removeSignedInUser();
       Provider.of<Auth>(ctx, listen: false).deleteAccount();
     } on HttpException catch (error) {
-      Scaffold.of(ctx).showSnackBar(SnackBar(
-        content: Text('Error while removing profile.'),
-      ));
+      HttpException.showErrorDialog(error.message, ctx);
     }
   }
 
@@ -441,9 +439,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
         age: _user.age,
       );
       await Provider.of<Users>(context).updateUser(modifiedUser);
-    } on HttpException catch (_) {
-      Scaffold.of(context)
-          .showSnackBar(SnackBar(content: Text('Failed to update profile.')));
+    } on HttpException catch (error) {
+      HttpException.showErrorDialog(error.message, context);
     } finally {
       setState(() {
         _isLoading = false;
@@ -462,6 +459,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               .uploadToStorage(file, 'images', '${_user.id}.jpg');
       await Provider.of<Users>(context).updateAvatarUrl(downloadUrl, _user.id);
     } on HttpException catch (error) {
+      HttpException.showErrorDialog(error.message, context);
       setState(() {
         _user = oldUser;
       });
@@ -469,6 +467,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
       setState(() {
         _isLoading = false;
       });
+    }
+  }
+
+  Future<void> _toggleFollowingStatusFuture(BuildContext ctx) async {
+    try {
+      return await Provider.of<Users>(ctx).toggleFollowingStatus(_user);
+    } on HttpException catch (error) {
+      HttpException.showErrorDialog(error.message, ctx);
+      return null;
     }
   }
 }

@@ -1,10 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
-import 'package:path/path.dart';
 import 'package:salto/models/http_exception.dart';
 import 'package:salto/models/user.dart';
 import 'package:salto/providers/storage.dart';
@@ -32,10 +30,25 @@ class ContentItems with ChangeNotifier {
   }
 
   Future<String> addContent(ContentItem item) async {
-    final body = ContentItem.toJson(item);
-    final response =
-        await http.post('$url/content.json$authString', body: body);
-    return json.decode(response.body)['name'];
+    final errorMsg = 'Could not add new post.';
+    try {
+      final body = ContentItem.toJson(item);
+      final response =
+          await http.post('$url/content.json$authString', body: body);
+      final responseBody = json.decode(response.body);
+      if (response.statusCode >= 400) {
+        print(json.decode(response.body)['error']['message']);
+        throw HttpException(errorMsg);
+      }
+      final postId = responseBody['name'];
+      if (postId == null) throw HttpException(errorMsg);
+      return postId;
+    } on SocketException catch (_) {
+      throw HttpException('No network connection.');
+    } catch (error) {
+      print(error);
+      throw error;
+    }
   }
 
   void addFirst(ContentItem item) {
@@ -46,21 +59,16 @@ class ContentItems with ChangeNotifier {
     post.likes.add(userId);
     this.notifyListeners();
     try {
-      final statusCode = await this.updatePost({'likes': post.likes}, post.id);
-      if (statusCode >= 400) {
-        print("Error while adding like.");
-        post.likes.remove(userId);
-        this.notifyListeners();
-      }
+      await this.updatePost({'likes': post.likes}, post.id);
     } catch (error) {
       print(error);
       post.likes.remove(userId);
       this.notifyListeners();
+      throw error;
     }
   }
 
   Future<void> deleteContent(Storage storageProvider, String postId) async {
-    final errorMsg = 'Error while deleting post.';
     try {
       var copy = _items.sublist(0, _items.length);
       copy.removeWhere((i) => i.id == postId);
@@ -68,13 +76,16 @@ class ContentItems with ChangeNotifier {
       this.notifyListeners();
       final response =
           await http.delete('$url/content/$postId.json$authString');
-      await storageProvider.deleteFromStorage('videos', '$postId.mp4');
       if (response.statusCode >= 400) {
-        throw HttpException(errorMsg);
+        print(json.decode(response.body)['error']['message']);
+        throw HttpException('Could not delete post.');
       }
+      storageProvider.deleteFromStorage('videos', '$postId.mp4');
+    } on SocketException catch (_) {
+      throw HttpException('No network connection.');
     } catch (error) {
       print(error);
-      throw HttpException(errorMsg);
+      throw error;
     }
   }
 
@@ -87,8 +98,9 @@ class ContentItems with ChangeNotifier {
       _items
           .where((i) => i.userId == userId)
           .forEach((i) => deleteContent(storageProvider, i.id));
-    } on HttpException catch (error) {
-      throw HttpException("Error while removing content of user.");
+    } catch (error) {
+      print(error);
+      throw error;
     }
   }
 
@@ -100,17 +112,27 @@ class ContentItems with ChangeNotifier {
   }
 
   Future<void> getContent(User signedInUser) async {
-    this._favoriteUserIds = signedInUser.follows;
-    final response = await http.get('$url/content.json$authString');
-    final List<ContentItem> loadedContent = [];
-    final extracted = json.decode(response.body) as Map<String, dynamic>;
-    if (extracted == null) return;
-    extracted.forEach(
-        (id, data) => loadedContent.add(ContentItem.fromJson(id, data)));
-    loadedContent.sort((a, b) => b.timestamp.compareTo(a.timestamp));
-    this._items = loadedContent.toList();
-    this.notifyListeners();
-    print("Loaded content from database.");
+    try {
+      this._favoriteUserIds = signedInUser.follows;
+      final response = await http.get('$url/content.json$authString');
+      if (response.statusCode >= 400) {
+        print(json.decode(response.body)['error']['message']);
+        throw HttpException('Could not fetch content.');
+      }
+      final List<ContentItem> loadedContent = [];
+      final extracted = json.decode(response.body) as Map<String, dynamic>;
+      if (extracted == null) return;
+      extracted.forEach(
+          (id, data) => loadedContent.add(ContentItem.fromJson(id, data)));
+      loadedContent.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+      this._items = loadedContent.toList();
+      this.notifyListeners();
+    } on SocketException catch (_) {
+      throw HttpException('No network connection.');
+    } catch (error) {
+      print(error);
+      throw error;
+    }
   }
 
   ContentItem getContentById(String id) {
@@ -130,39 +152,44 @@ class ContentItems with ChangeNotifier {
   }
 
   Future<void> removeFromFavorites(ContentItem post, String userId) async {
-    post.likes.remove(userId);
-    this.notifyListeners();
     try {
-      final statusCode = await this.updatePost({'likes': post.likes}, post.id);
-      if (statusCode >= 400) {
-        print("Error while removing like.");
-        post.likes.add(userId);
-        this.notifyListeners();
-      }
+      post.likes.remove(userId);
+      this.notifyListeners();
+      await this.updatePost({'likes': post.likes}, post.id);
     } catch (error) {
       print(error);
       post.likes.add(userId);
       this.notifyListeners();
+      throw error;
     }
   }
 
   Future<void> toggleFavorites(ContentItem post, userId) async {
-    if (ContentItem.isFavorite(post, userId)) {
-      await this.removeFromFavorites(post, userId);
-    } else {
-      await this.addToFavorites(post, userId);
+    try {
+      if (ContentItem.isFavorite(post, userId)) {
+        return await this.removeFromFavorites(post, userId);
+      } else {
+        return await this.addToFavorites(post, userId);
+      }
+    } catch (error) {
+      throw error;
     }
   }
 
-  Future<int> updatePost(Map<String, dynamic> data, String postId) async {
+  Future<void> updatePost(Map<String, dynamic> data, String postId) async {
     final body = json.encode(data);
     try {
       final response =
           await http.patch('$url/content/$postId.json$authString', body: body);
-      return response.statusCode;
+      if (response.statusCode >= 400) {
+        print(json.decode(response.body)['error']['message']);
+        throw HttpException('Could not update post.');
+      }
+    } on SocketException catch (_) {
+      throw HttpException('No network connection.');
     } catch (error) {
       print(error);
-      throw HttpException("Failed to update post");
+      throw error;
     }
   }
 }

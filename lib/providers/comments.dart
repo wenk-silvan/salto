@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:salto/models/comment.dart';
@@ -27,26 +28,26 @@ class Comments with ChangeNotifier {
   Future<void> getComments(String contentItemId) async {
     try {
       if (this.authToken == null) return;
-      print("getComments()");
       final response =
           await http.get('$url/comments/$contentItemId.json$authString');
+      final responseBody = json.decode(response.body) as Map<String, dynamic>;
+      if (response.statusCode >= 400) {
+        print(responseBody['error']['message']);
+        throw new HttpException('Could not fetch comments.');
+      }
       final List<Comment> loadedComments = [];
-      final extracted = json.decode(response.body) as Map<String, dynamic>;
-      if (extracted == null) {
+      if (responseBody == null) {
         this._items = [];
         return;
       }
-
-      if (response.statusCode >= 400 || response.statusCode >= 400) {
-        throw new HttpException('Failed to post comment.');
-      }
-
-      extracted.forEach(
+      responseBody.forEach(
           (id, data) => loadedComments.add(Comment.fromJson(id, data)));
       this._items = loadedComments.toList();
       print("Loaded comments for post with id: $contentItemId.");
-      //this.notifyListeners();
+    } on SocketException catch (_) {
+      throw HttpException('No network connection.');
     } catch (error) {
+      print(error);
       throw error;
     }
   }
@@ -59,10 +60,13 @@ class Comments with ChangeNotifier {
       final body = Comment.toJson(comment);
       final response = await http
           .post('$url/comments/$contentItemId.json$authString', body: body);
-      if (response.statusCode >= 400 || response.statusCode >= 400) {
-        throw new HttpException('Failed to post comment.');
+      if (response.statusCode >= 400) {
+        print(json.decode(response.body)['error']['message']);
+        throw new HttpException('Could not add comment.');
       }
-      print("Added comment to post with id: $contentItemId.");
+      print('Added comment to post with id: $contentItemId.');
+    } on SocketException catch (_) {
+      throw HttpException('No network connection.');
     } catch (error) {
       throw error;
     }
@@ -74,9 +78,9 @@ class Comments with ChangeNotifier {
       posts.forEach((post) {
         //TODO: Rethink design of comments (especially deleting).
       });
-    } on HttpException catch (error) {
-      throw HttpException(
-          "Error while removing comments of user. [userId=$userId]");
+    } catch (error) {
+      print(error);
+      throw error;
     }
   }
 
@@ -85,14 +89,17 @@ class Comments with ChangeNotifier {
       final response =
           await http.delete('$url/comments/$postId/$id.json$authString');
       if (response.statusCode >= 400) {
-        throw HttpException(
-            "Error while deleting comment. [id=$id;postId=$postId]");
+        print(json.decode(response.body)['error']['message'] +
+            ' [id=$id;postId=$postId]');
+        throw HttpException("Could not delete comment.");
       }
       this._items.removeWhere((i) => i.id == id);
       this.notifyListeners();
+    } on SocketException catch (_) {
+      throw HttpException('No network connection.');
     } catch (error) {
       print(error);
-      throw HttpException("Error while deleting comment.");
+      throw error;
     }
   }
 }

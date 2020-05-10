@@ -11,7 +11,7 @@ class Storage with ChangeNotifier {
 
   Future<void> deleteFromStorage(
       final String path, final String fileName) async {
-    await this.storage.ref().child(path).child(fileName).delete();
+      await this.storage.ref().child(path).child(fileName).delete();
   }
 
   Future<File> downloadFromStorage(

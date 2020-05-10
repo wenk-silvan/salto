@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/widgets.dart';
 import 'package:salto/models/http_exception.dart';
@@ -35,18 +36,19 @@ class Auth with ChangeNotifier {
 
   String get userId => this._userId;
 
-  Future<void> addUser(User user, Users userData) async {
+  Future<void> addAccount(User user, Users userData) async {
     try {
       final uri = 'https://salto-7fab8.firebaseio.com/users.json?auth=$_token';
       final response = await http.post('$uri', body: User.toJson(user));
-      final responseBody = json.decode(response.body);
       if (response.statusCode >= 400) {
         this._signingUp = false;
-        throw new HttpException(responseBody['error']['message']);
+        print(json.decode(response.body)['error']['message']);
+        throw new HttpException(json.decode(response.body)['error']['message']);
       }
       this._signingUp = false;
       this.notifyListeners();
     } catch (error) {
+      print(error);
       throw error;
     }
   }
@@ -66,13 +68,16 @@ class Auth with ChangeNotifier {
               'email': email,
               'requestType': 'PASSWORD_RESET',
             }));
-        final responseData = json.decode(response.body);
-        if (responseData['error'] != null) {
-          throw HttpException(responseData['error']['message']);
+        if (response.statusCode >= 400) {
+          print(json.decode(response.body)['error']['message']);
+          throw new HttpException(
+              json.decode(response.body)['error']['message']);
         }
-
       });
+    } on SocketException catch (_) {
+      throw HttpException('No network connection.');
     } catch (error) {
+      print(error);
       throw error;
     }
   }
@@ -124,13 +129,17 @@ class Auth with ChangeNotifier {
             body: json.encode({
               'idToken': this.token,
             }));
-        final responseData = json.decode(response.body);
-        if (responseData['error'] != null) {
-          throw HttpException(responseData['error']['message']);
+        if (response.statusCode >= 400) {
+          print(json.decode(response.body)['error']['message']);
+          throw new HttpException(
+              json.decode(response.body)['error']['message']);
         }
       });
       this.logout();
+    } on SocketException catch (_) {
+      throw HttpException('No network connection.');
     } catch (error) {
+      print(error);
       throw error;
     }
   }
@@ -149,7 +158,7 @@ class Auth with ChangeNotifier {
               'returnSecureToken': true,
             }));
         final responseData = json.decode(response.body);
-        if (responseData['error'] != null) {
+        if (response.statusCode >= 400) {
           throw HttpException(responseData['error']['message']);
         }
         this._token = responseData['idToken'];
@@ -166,7 +175,10 @@ class Auth with ChangeNotifier {
         'expiryDate': this._expiryDate.toIso8601String(),
       });
       prefs.setString('userData', userData);
+    } on SocketException catch (_) {
+      throw HttpException('No network connection.');
     } catch (error) {
+      print(error);
       throw error;
     }
   }

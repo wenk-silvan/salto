@@ -246,7 +246,7 @@ class _AuthActionsState extends State<AuthActions> {
 
   void _addNewUser() {
     try {
-      Provider.of<Auth>(context, listen: false).addUser(
+      Provider.of<Auth>(context, listen: false).addAccount(
           User(
             followers: [],
             firstName: this._firstNameController.text,
@@ -264,6 +264,7 @@ class _AuthActionsState extends State<AuthActions> {
           Provider.of<Users>(context));
     } catch (error) {
       Provider.of<Auth>(context, listen: false).logout();
+      throw error;
     }
   }
 

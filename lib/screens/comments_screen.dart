@@ -4,6 +4,7 @@ import 'package:salto/components/add_comment.dart';
 import 'package:salto/components/circle_avatar_button.dart';
 import 'package:salto/components/timestamp.dart';
 import 'package:salto/models/comment.dart';
+import 'package:salto/models/http_exception.dart';
 import 'package:salto/models/user.dart';
 import 'package:salto/providers/auth.dart';
 import 'package:salto/providers/comments.dart';
@@ -13,6 +14,7 @@ import 'package:salto/screens/splash_screen.dart';
 class CommentsScreen extends StatelessWidget {
   static const route = '/comments';
   List<Comment> _comments = [];
+  String _postId;
 
   @override
   Widget build(BuildContext context) {
@@ -21,7 +23,7 @@ class CommentsScreen extends StatelessWidget {
       Navigator.of(context).pop();
       return SplashScreen();
     }
-    final postId = args['postId'];
+    this._postId = args['postId'];
     final User postUser = args['postUser'];
     final User signedInUser = args['signedInUser'];
     return Scaffold(
@@ -32,7 +34,7 @@ class CommentsScreen extends StatelessWidget {
           ],
         ),
         body: FutureBuilder(
-            future: Provider.of<Comments>(context).getComments(postId),
+            future: _getCommentsFuture(context),
             builder: (ctx, authResultSnapshot) {
               if (authResultSnapshot.connectionState == ConnectionState.done) {
                 _comments = Provider.of<Comments>(context).items;
@@ -52,7 +54,7 @@ class CommentsScreen extends StatelessWidget {
                         ),
                         AddComment(
                           userId: signedInUser.id,
-                          postId: postId,
+                          postId: _postId,
                           hasLine: true,
                         ),
                       ],
@@ -94,5 +96,14 @@ class CommentsScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _getCommentsFuture(BuildContext ctx) async {
+    try {
+      return await Provider.of<Comments>(ctx).getComments(_postId);
+    } on HttpException catch(error) {
+      HttpException.showErrorDialog(error.message, ctx);
+      return null;
+    }
   }
 }

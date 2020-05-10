@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:salto/components/add_post_dialog.dart';
 import 'package:salto/components/file_video_player.dart';
 import 'package:salto/components/stylish_raised_button.dart';
+import 'package:salto/models/http_exception.dart';
 import 'package:salto/models/user.dart';
 import 'package:salto/providers/auth.dart';
 import 'package:salto/providers/content-items.dart';
@@ -160,9 +161,6 @@ class _UploadScreenState extends State<UploadScreen> {
     try {
       if (_file == null) return;
       final contentItemId = await contentData.addContent(_newContentItem);
-      if (contentItemId == null) {
-        throw Exception("Error while uploading post.");
-      }
       final fileName = '$contentItemId.mp4';
       _file.copy(
           '${Directory.systemTemp.path}/$fileName'); // Keep video in cache
@@ -179,10 +177,8 @@ class _UploadScreenState extends State<UploadScreen> {
       ));
       contentData.updatePost({'mediaUrl': downloadUrl}, contentItemId);
       Navigator.of(context).pop();
-    } catch (error) {
-      print(error);
-      Scaffold.of(context)
-          .showSnackBar(SnackBar(content: Text('Something went wrong.')));
+    } on HttpException catch (error) {
+      HttpException.showErrorDialog(error.message, context);
     } finally {
       setState(() {
         this._isLoading = false;

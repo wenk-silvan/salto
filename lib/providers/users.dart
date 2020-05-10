@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:salto/models/http_exception.dart';
 
+import 'dart:io';
 import '../models/user.dart';
 import 'package:http/http.dart' as http;
 
@@ -31,21 +32,23 @@ class Users with ChangeNotifier {
   }
 
   Future<void> getUsers() async {
-    final errorMsg = 'Failed to fetch users.';
     try {
       final response = await http.get('$url/users.json$authString');
       if(response.statusCode >= 400) {
-        throw new HttpException(errorMsg);
+        print(json.decode(response.body)['error']['message']);
+        throw new HttpException('Could not fetch users.');
       }
       final List<User> loadedUsers = [];
-      final extracted = json.decode(response.body) as Map<String, dynamic>;
-      if (extracted == null) return;
-      extracted.forEach((id, data) => loadedUsers.add(User.fromJson(id, data)));
+      final responseBody = json.decode(response.body) as Map<String, dynamic>;
+      if (responseBody == null) return;
+      responseBody.forEach((id, data) => loadedUsers.add(User.fromJson(id, data)));
       this._users = loadedUsers.toList();
       this.notifyListeners();
+    } on SocketException catch (_) {
+      throw HttpException('No network connection.');
     } catch (error) {
       print(error);
-      throw new HttpException(errorMsg);
+      throw error;
     }
   }
 
@@ -85,17 +88,12 @@ class Users with ChangeNotifier {
       followers.add(this.signedInUser.id);
     }
     this.notifyListeners();
-    final errorMsg = 'Failed to toggle following status';
     try {
-      final statusCodeFollowers =
-          await this._updateFollowers(user.id, followers);
-      final statusCodeFollows = await this._updateFollows(this.signedInUser.id, follows);
-      if (statusCodeFollowers >= 400 || statusCodeFollows >= 400) {
-        throw new HttpException(errorMsg);
-      }
+      await this._updateFollowers(user.id, followers);
+      await this._updateFollows(this.signedInUser.id, follows);
     } catch (error) {
       print(error);
-      throw HttpException(errorMsg);
+      throw error;
     }
   }
 
@@ -114,10 +112,14 @@ class Users with ChangeNotifier {
       final response =
       await http.delete('$url/users/${this.signedInUser.id}.json$authString');
       if(response.statusCode >= 400) {
-        throw new HttpException('Failed to remove data from user.');
+        print(json.decode(response.body)['error']['message']);
+        throw new HttpException('Could not remove user data.');
       }
       notifyListeners();
+    } on SocketException catch (_) {
+      throw HttpException('No network connection.');
     } catch (error) {
+      print(error);
       throw error;
     }
   }
@@ -130,31 +132,33 @@ class Users with ChangeNotifier {
       'description': user.description,
       'locality': user.locality,
     });
-    final errorMsg = 'Failed to update profile information.';
     try {
       final response =
       await http.patch('$url/users/${user.id}.json$authString', body: body);
-      if (response.statusCode >= 400 || response.statusCode >= 400) {
-        throw new HttpException(errorMsg);
+      if (response.statusCode >= 400) {
+        print(json.decode(response.body)['error']['message']);
+        throw new HttpException('Could not update user data.');
       }
       this._users.removeWhere((u) => user.id == u.id);
       this._users.add(user);
       this.notifyListeners();
+    } on SocketException catch (_) {
+      throw HttpException('No network connection.');
     } catch (error) {
       print(error);
-      throw new HttpException(errorMsg);
+      throw error;
     }
   }
 
 
   Future<void> updateAvatarUrl(String avatarUrl, String userId) async {
     final body = json.encode({'avatarUrl': avatarUrl});
-    final errorMsg = 'Failed to update avatar url. [userId=$userId]';
     try {
       final response =
       await http.patch('$url/users/$userId.json$authString', body: body);
-      if (response.statusCode >= 400 || response.statusCode >= 400) {
-        throw new HttpException(errorMsg);
+      if (response.statusCode >= 400) {
+        print(json.decode(response.body)['error']['message']);
+        throw new HttpException('Failed to update avatar url.');
       }
       final user = _users.firstWhere((u) => u.id == userId);
       final clone = User(
@@ -174,29 +178,33 @@ class Users with ChangeNotifier {
       _users.add(clone);
       signedInUser = clone;
       this.notifyListeners();
+    } on SocketException catch (_) {
+      throw HttpException('No network connection.');
     } catch (error) {
-      print(error);
-      throw new HttpException(errorMsg);
+      print(error + ' [userId=$userId]');
+      throw error;
     }
   }
 
-  Future<int> _updateFollowers(String userId, List<String> followers) async {
+  Future<void> _updateFollowers(String userId, List<String> followers) async {
     final body = json.encode({
       'followers': followers,
     });
     try {
       final response =
           await http.patch('$url/users/$userId.json$authString', body: body);
-      if (response.statusCode >= 400 || response.statusCode >= 400) {
-        throw new HttpException('Failed to toggle following status.');
+      if (response.statusCode >= 400) {
+        print(json.decode(response.body)['error']['message']);
+        throw new HttpException('Could not toggle following status.');
       }
-      return response.statusCode;
+    } on SocketException catch (_) {
+      throw HttpException('No network connection.');
     } catch (error) {
       throw error;
     }
   }
 
-  Future<int> _updateFollows(String userId, List<String> follows) async {
+  Future<void> _updateFollows(String userId, List<String> follows) async {
     final body = json.encode({
       'follows': follows,
     });
@@ -204,7 +212,12 @@ class Users with ChangeNotifier {
       final response = await http.patch(
           '$url/users/$userId.json$authString',
           body: body);
-      return response.statusCode;
+      if(response.statusCode >= 400) {
+        print(json.decode(response.body)['error']['message']);
+        throw HttpException('Could not update follows status.');
+      }
+    } on SocketException catch (_) {
+      throw HttpException('No network connection.');
     } catch (error) {
       throw error;
     }

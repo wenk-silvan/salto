@@ -96,12 +96,11 @@ class _TabsScreenState extends State<TabsScreen> {
       this._userData.login(Provider
           .of<Auth>(ctx, listen: false)
           .userId);
-      await Provider.of<ContentItems>(ctx, listen: false).getContent(
-          _userData.signedInUser);
+      await _getContentFuture(ctx);
       _isInit = false;
-    } catch (error) {
-      print('ERROR OCCURED: $error');
+    } on HttpException catch (error) {
       Provider.of<Auth>(context).logout();
+      HttpException.showErrorDialog(error.message, ctx);
     }
   }
 
@@ -125,7 +124,7 @@ class _TabsScreenState extends State<TabsScreen> {
       appBar: BaseAppBar(),
       body: RefreshIndicator(
         child: _pages[_selectedPageIndex]['page'],
-        onRefresh: () => Provider.of<ContentItems>(context).getContent(_userData.signedInUser),
+        onRefresh: () => _getContentFuture(context),
       ),
       bottomNavigationBar: _bottomNavBar(),
     );
@@ -141,5 +140,14 @@ class _TabsScreenState extends State<TabsScreen> {
     return AppBar(
       title: Text('Salto'),
     );
+  }
+
+  Future<void> _getContentFuture(BuildContext ctx) async {
+    try {
+      return await Provider.of<ContentItems>(context).getContent(_userData.signedInUser);
+    } on HttpException catch (error) {
+      HttpException.showErrorDialog(error.message, ctx);
+      return null;
+    }
   }
 }

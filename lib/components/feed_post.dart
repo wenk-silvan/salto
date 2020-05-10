@@ -17,6 +17,7 @@ import 'package:salto/providers/storage.dart';
 import 'package:salto/providers/users.dart';
 import 'package:salto/screens/profile_screen.dart';
 import 'confirm_dialog.dart';
+import 'package:salto/models/http_exception.dart';
 
 class FeedPost extends StatelessWidget {
   final ContentItem post;
@@ -88,8 +89,7 @@ class FeedPost extends StatelessWidget {
           icon: Icon(ContentItem.isFavorite(this.post, _signedInUser.id)
               ? Icons.favorite
               : Icons.favorite_border),
-          onPressed: () => Provider.of<ContentItems>(ctx)
-              .toggleFavorites(this.post, this._signedInUser.id),
+          onPressed: () => _toggleFavoritesFuture(ctx),
         ),
         IconButton(
           iconSize: 30,
@@ -165,8 +165,13 @@ class FeedPost extends StatelessWidget {
         builder: (BuildContext context) {
           return ConfirmDialog(
             callback: () async {
-              await Provider.of<ContentItems>(ctx, listen: false)
-                  .deleteContent(Provider.of<Storage>(ctx, listen: false), this.post.id);
+              try {
+                await Provider.of<ContentItems>(ctx, listen: false)
+                    .deleteContent(
+                        Provider.of<Storage>(ctx, listen: false), this.post.id);
+              } on HttpException catch (error) {
+                HttpException.showErrorDialog(error.message, context);
+              }
               Navigator.pop(context);
             },
             statement: 'Remove this post?',
@@ -185,5 +190,15 @@ class FeedPost extends StatelessWidget {
             brightMode: true,
           );
         });
+  }
+
+  Future<void> _toggleFavoritesFuture(BuildContext ctx) async {
+    try {
+      return await Provider.of<ContentItems>(ctx)
+          .toggleFavorites(this.post, this._signedInUser.id);
+    } on HttpException catch (error) {
+      HttpException.showErrorDialog(error.message, ctx);
+      return null;
+    }
   }
 }

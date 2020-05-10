@@ -71,7 +71,7 @@ class _AddCommentState extends State<AddComment> {
           ),
           this.widget.postId);
     } on HttpException catch (error) {
-      HttpException.showErrorDialog(error.toString(), ctx);
+      HttpException.showErrorDialog(error.message, ctx);
     }
   }
 }

@@ -7,7 +7,6 @@ import 'package:provider/provider.dart';
 import 'package:salto/providers/auth.dart';
 import 'package:salto/providers/comments.dart';
 import 'package:salto/providers/content-items.dart';
-import 'package:salto/providers/media.dart';
 import 'package:salto/providers/player_manager.dart';
 import 'package:salto/providers/storage.dart';
 import 'package:salto/providers/users.dart';
@@ -82,13 +81,6 @@ class MyApp extends StatelessWidget {
           update: (ctx, auth, previousComments) => Comments(
             auth.token,
             previousComments == null ? [] : previousComments.items,
-          ),
-        ),
-        ChangeNotifierProxyProvider<Auth, Media>(
-          create: (BuildContext ctx) => null,
-          update: (ctx, auth, previousMedia) => Media(
-            auth.token,
-            previousMedia == null ? [] : previousMedia.media,
           ),
         ),
         ChangeNotifierProvider(

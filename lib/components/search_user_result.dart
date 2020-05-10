@@ -59,8 +59,7 @@ class SearchUserResult extends StatelessWidget {
                                 try {
                                   users.toggleFollowingStatus(user);
                                 } on HttpException catch (error) {
-                                  Scaffold.of(ctx).showSnackBar(SnackBar(
-                                      content: Text('Operation failed.')));
+                                  HttpException.showErrorDialog(error.message, ctx);
                                 }
                               },
                               icon: Icon(users.follows(this.user.id)
