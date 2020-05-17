@@ -37,7 +37,7 @@ class ContentItems with ChangeNotifier {
           await http.post('$url/content.json$authString', body: body);
       final responseBody = json.decode(response.body);
       if (response.statusCode >= 400) {
-        print(json.decode(response.body)['error']['message']);
+        print(responseBody['error']);
         throw HttpException(errorMsg);
       }
       final postId = responseBody['name'];
@@ -77,7 +77,7 @@ class ContentItems with ChangeNotifier {
       final response =
           await http.delete('$url/content/$postId.json$authString');
       if (response.statusCode >= 400) {
-        print(json.decode(response.body)['error']['message']);
+        print(json.decode(response.body)['error']);
         throw HttpException('Could not delete post.');
       }
       storageProvider.deleteFromStorage('videos', '$postId.mp4');
@@ -116,7 +116,7 @@ class ContentItems with ChangeNotifier {
       this._favoriteUserIds = signedInUser.follows;
       final response = await http.get('$url/content.json$authString');
       if (response.statusCode >= 400) {
-        print(json.decode(response.body)['error']['message']);
+        print(json.decode(response.body)['error']);
         throw HttpException('Could not fetch content.');
       }
       final List<ContentItem> loadedContent = [];
@@ -182,7 +182,7 @@ class ContentItems with ChangeNotifier {
       final response =
           await http.patch('$url/content/$postId.json$authString', body: body);
       if (response.statusCode >= 400) {
-        print(json.decode(response.body)['error']['message']);
+        print(json.decode(response.body)['error']);
         throw HttpException('Could not update post.');
       }
     } on SocketException catch (_) {

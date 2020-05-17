@@ -42,8 +42,8 @@ class Auth with ChangeNotifier {
       final response = await http.post('$uri', body: User.toJson(user));
       if (response.statusCode >= 400) {
         this._signingUp = false;
-        print(json.decode(response.body)['error']['message']);
-        throw new HttpException(json.decode(response.body)['error']['message']);
+        print(json.decode(response.body)['error']);
+        throw new HttpException(json.decode(response.body)['error']);
       }
       this._signingUp = false;
       this.notifyListeners();
@@ -69,9 +69,9 @@ class Auth with ChangeNotifier {
               'requestType': 'PASSWORD_RESET',
             }));
         if (response.statusCode >= 400) {
-          print(json.decode(response.body)['error']['message']);
+          print(json.decode(response.body)['error']);
           throw new HttpException(
-              json.decode(response.body)['error']['message']);
+              json.decode(response.body)['error']);
         }
       });
     } on SocketException catch (_) {
@@ -130,9 +130,9 @@ class Auth with ChangeNotifier {
               'idToken': this.token,
             }));
         if (response.statusCode >= 400) {
-          print(json.decode(response.body)['error']['message']);
+          print(json.decode(response.body)['error']);
           throw new HttpException(
-              json.decode(response.body)['error']['message']);
+              json.decode(response.body)['error']);
         }
       });
       this.logout();
@@ -159,7 +159,7 @@ class Auth with ChangeNotifier {
             }));
         final responseData = json.decode(response.body);
         if (response.statusCode >= 400) {
-          throw HttpException(responseData['error']['message']);
+          throw HttpException(responseData['error']);
         }
         this._token = responseData['idToken'];
         this._userId = responseData['localId'];

@@ -32,7 +32,7 @@ class Comments with ChangeNotifier {
           await http.get('$url/comments/$contentItemId.json$authString');
       final responseBody = json.decode(response.body) as Map<String, dynamic>;
       if (response.statusCode >= 400) {
-        print(responseBody['error']['message']);
+        print(responseBody['error']);
         throw new HttpException('Could not fetch comments.');
       }
       final List<Comment> loadedComments = [];
@@ -61,7 +61,7 @@ class Comments with ChangeNotifier {
       final response = await http
           .post('$url/comments/$contentItemId.json$authString', body: body);
       if (response.statusCode >= 400) {
-        print(json.decode(response.body)['error']['message']);
+        print(json.decode(response.body)['error']);
         throw new HttpException('Could not add comment.');
       }
       print('Added comment to post with id: $contentItemId.');
@@ -89,7 +89,7 @@ class Comments with ChangeNotifier {
       final response =
           await http.delete('$url/comments/$postId/$id.json$authString');
       if (response.statusCode >= 400) {
-        print(json.decode(response.body)['error']['message'] +
+        print(json.decode(response.body)['error'] +
             ' [id=$id;postId=$postId]');
         throw HttpException("Could not delete comment.");
       }

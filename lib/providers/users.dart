@@ -35,7 +35,7 @@ class Users with ChangeNotifier {
     try {
       final response = await http.get('$url/users.json$authString');
       if(response.statusCode >= 400) {
-        print(json.decode(response.body)['error']['message']);
+        print(json.decode(response.body)['error']);
         throw new HttpException('Could not fetch users.');
       }
       final List<User> loadedUsers = [];
@@ -92,6 +92,16 @@ class Users with ChangeNotifier {
       await this._updateFollowers(user.id, followers);
       await this._updateFollows(this.signedInUser.id, follows);
     } catch (error) {
+      if (follows.any((f) => f == user.id)) {
+        //Remove
+        follows.remove(user.id);
+        followers.remove(this.signedInUser.id);
+      } else {
+        //Add
+        follows.add(user.id);
+        followers.add(this.signedInUser.id);
+      }
+      this.notifyListeners();
       print(error);
       throw error;
     }
@@ -112,7 +122,7 @@ class Users with ChangeNotifier {
       final response =
       await http.delete('$url/users/${this.signedInUser.id}.json$authString');
       if(response.statusCode >= 400) {
-        print(json.decode(response.body)['error']['message']);
+        print(json.decode(response.body)['error']);
         throw new HttpException('Could not remove user data.');
       }
       notifyListeners();
@@ -136,7 +146,7 @@ class Users with ChangeNotifier {
       final response =
       await http.patch('$url/users/${user.id}.json$authString', body: body);
       if (response.statusCode >= 400) {
-        print(json.decode(response.body)['error']['message']);
+        print(json.decode(response.body)['error']);
         throw new HttpException('Could not update user data.');
       }
       this._users.removeWhere((u) => user.id == u.id);
@@ -150,14 +160,13 @@ class Users with ChangeNotifier {
     }
   }
 
-
   Future<void> updateAvatarUrl(String avatarUrl, String userId) async {
     final body = json.encode({'avatarUrl': avatarUrl});
     try {
       final response =
       await http.patch('$url/users/$userId.json$authString', body: body);
       if (response.statusCode >= 400) {
-        print(json.decode(response.body)['error']['message']);
+        print(json.decode(response.body)['error']);
         throw new HttpException('Failed to update avatar url.');
       }
       final user = _users.firstWhere((u) => u.id == userId);
@@ -194,7 +203,7 @@ class Users with ChangeNotifier {
       final response =
           await http.patch('$url/users/$userId.json$authString', body: body);
       if (response.statusCode >= 400) {
-        print(json.decode(response.body)['error']['message']);
+        print(json.decode(response.body)['error']);
         throw new HttpException('Could not toggle following status.');
       }
     } on SocketException catch (_) {
@@ -213,7 +222,7 @@ class Users with ChangeNotifier {
           '$url/users/$userId.json$authString',
           body: body);
       if(response.statusCode >= 400) {
-        print(json.decode(response.body)['error']['message']);
+        print(json.decode(response.body)['error']);
         throw HttpException('Could not update follows status.');
       }
     } on SocketException catch (_) {
